@@ -9,9 +9,9 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
-    id: "erlangToGo"
-    binary: "myprogram"
-    main: ./go
+    id: "ergoProject"
+    binary: "master"
+    main: ./master
     goos:
       - linux
       - windows

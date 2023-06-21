@@ -50,3 +50,10 @@ goreleaser --snapshot --skip-publish --rm-dist
 <<6>>
 ```
 ### 2. tcp method
+
+ergo -init Master -with-app MasterApp -with-sup "MasterApp:MasterSup{type:rfo,restart:trans}" -with-actor MasterSup:MasterActor
+ergo -init WsGate -with-app WsGateApp -with-sup WsGateApp:WsGateSup -with-actor WsGateSup:WsGateActor
+ergo -init Gamer -with-app GamerApp -with-sup GamerApp:GamerSup -with-actor GamerSup:GamerActor -with-sup GamerSup:PlayerSup -with-actor PlayerSup:PlayerActor
+
+
+
