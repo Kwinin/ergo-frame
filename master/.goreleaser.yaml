@@ -9,9 +9,9 @@ before:
 builds:
   - env:
       - CGO_ENABLED=0
-    id: "ergoProject"
+    id: "ergo-frame-master"
     binary: "master"
-    main: ./master
+    main: ./cmd
     goos:
       - linux
       - windows

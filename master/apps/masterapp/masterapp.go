@@ -31,15 +31,4 @@ func (app *MasterApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
 func (app *MasterApp) Start(process gen.Process, args ...etf.Term) {
 	fmt.Printf("Application MasterApp started with Pid %s\n", process.Self())
 
-	opts := gen.RemoteSpawnOptions{
-		Name:     "remote",
-		Function: "Hello",
-	}
-
-	gotPid, err := process.RemoteSpawn("WsGate@localhost", "remote", opts, 1, 2, 3)
-	if err != nil {
-		fmt.Println(134, err)
-	}
-	fmt.Println("OK", process.Name(), process.Self(), gotPid)
-
 }

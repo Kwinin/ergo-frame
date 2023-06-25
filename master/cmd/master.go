@@ -10,8 +10,10 @@ import (
 )
 
 var (
-	OptionNodeName   string
-	OptionNodeCookie string
+	OptionGamerNodeName  string
+	OptionWsGateNodeName string
+	OptionMasterNodeName string
+	OptionNodeCookie     string
 )
 
 func init() {
@@ -20,7 +22,9 @@ func init() {
 	//rand.Read(buff)
 	//randomCookie := hex.EncodeToString(buff)
 
-	flag.StringVar(&OptionNodeName, "name", "Master@localhost", "node name")
+	flag.StringVar(&OptionGamerNodeName, "gamer_name", "Gamer@localhost", "node gamer_name")
+	flag.StringVar(&OptionWsGateNodeName, "wsgate_name", "WsGate@localhost", "node wsgate_name")
+	flag.StringVar(&OptionMasterNodeName, "master_name", "Master@localhost", "node master_name")
 	flag.StringVar(&OptionNodeCookie, "cookie", "cookie123", "a secret cookie for interaction within the cluster")
 
 }
@@ -39,22 +43,33 @@ func main() {
 	options.Proxy.Flags.EnableRemoteSpawn = false
 
 	// Starting node
-	MasterNode, err := ergo.StartNode(OptionNodeName, OptionNodeCookie, options)
+	MasterNode, err := ergo.StartNode(OptionMasterNodeName, OptionNodeCookie, options)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Node %q is started\n", MasterNode.Name())
 
 	route := node.ProxyRoute{
-		Name:  "Gamer@localhost",
-		Proxy: "WsGate@localhost",
+		Name:  OptionGamerNodeName,
+		Proxy: OptionWsGateNodeName,
 	}
 
 	MasterNode.AddProxyRoute(route)
 
-	if err := MasterNode.Connect("WsGate@localhost"); err != nil {
+	if err := MasterNode.Connect(OptionWsGateNodeName); err != nil {
 		fmt.Println(111, err)
 	}
 
+	opts := gen.RemoteSpawnOptions{
+		Name: "gamer_remote",
+	}
+
+	process, _ := MasterNode.Spawn("gs1", gen.ProcessOptions{}, &masterapp.MasterActor{})
+
+	gotPid, err := process.RemoteSpawn(OptionGamerNodeName, "gamer_remote", opts, 1, 2, 3)
+	if err != nil {
+		fmt.Println(134, err)
+	}
+	fmt.Println("OK", process.Name(), process.Self(), gotPid)
 	MasterNode.Wait()
 }

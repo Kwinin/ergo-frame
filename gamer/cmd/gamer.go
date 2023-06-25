@@ -10,8 +10,10 @@ import (
 )
 
 var (
-	OptionNodeName   string
-	OptionNodeCookie string
+	OptionGamerNodeName  string
+	OptionWsGateNodeName string
+	OptionMasterNodeName string
+	OptionNodeCookie     string
 )
 
 func init() {
@@ -19,8 +21,9 @@ func init() {
 	//buff := make([]byte, 12)
 	//rand.Read(buff)
 	//randomCookie := hex.EncodeToString(buff)
-
-	flag.StringVar(&OptionNodeName, "name", "Gamer@localhost", "node name")
+	flag.StringVar(&OptionGamerNodeName, "gamer_name", "Gamer@localhost", "node gamer_name")
+	flag.StringVar(&OptionWsGateNodeName, "wsgate_name", "WsGate@localhost", "node wsgate_name")
+	flag.StringVar(&OptionMasterNodeName, "master_name", "Master@localhost", "node master_name")
 	flag.StringVar(&OptionNodeCookie, "cookie", "cookie123", "a secret cookie for interaction within the cluster")
 
 }
@@ -39,13 +42,13 @@ func main() {
 	options.Proxy.Transit = true
 
 	// Starting node
-	GamerNode, err := ergo.StartNode(OptionNodeName, OptionNodeCookie, options)
+	GamerNode, err := ergo.StartNode(OptionGamerNodeName, OptionNodeCookie, options)
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("Node %q is started\n", GamerNode.Name())
 
-	GamerNode.ProvideRemoteSpawn("remote", &gamerapp.GamerActor{})
+	GamerNode.ProvideRemoteSpawn("gamer_remote", &gamerapp.GamerActor{})
 
 	GamerNode.Wait()
 }
