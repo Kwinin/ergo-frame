@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"gamer/apps/gamerapp"
-	"gamer/lib"
-
 	"github.com/ergo-services/ergo"
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
@@ -47,7 +45,7 @@ func main() {
 	}
 	fmt.Printf("Node %q is started\n", GamerNode.Name())
 
-	GamerNode.ProvideRemoteSpawn("remote", &lib.HandshakeGenServer{})
+	GamerNode.ProvideRemoteSpawn("remote", &gamerapp.GamerActor{})
 
 	GamerNode.Wait()
 }

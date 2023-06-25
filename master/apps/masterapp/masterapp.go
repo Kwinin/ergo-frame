@@ -32,7 +32,8 @@ func (app *MasterApp) Start(process gen.Process, args ...etf.Term) {
 	fmt.Printf("Application MasterApp started with Pid %s\n", process.Self())
 
 	opts := gen.RemoteSpawnOptions{
-		Name: "remote",
+		Name:     "remote",
+		Function: "Hello",
 	}
 
 	gotPid, err := process.RemoteSpawn("WsGate@localhost", "remote", opts, 1, 2, 3)

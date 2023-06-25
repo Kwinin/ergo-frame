@@ -3,12 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"wsgate/apps/wsgateapp"
-	"wsgate/lib"
-
 	"github.com/ergo-services/ergo"
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
+	"wsgate/apps/wsgateapp"
 )
 
 var (
@@ -47,7 +45,7 @@ func main() {
 	}
 	fmt.Printf("Node %q is started\n", WsGateNode.Name())
 
-	WsGateNode.ProvideRemoteSpawn("remote", &lib.HandshakeGenServer{})
+	WsGateNode.ProvideRemoteSpawn("wsgate_remote", &wsgateapp.WsGateActor{})
 
 	WsGateNode.Wait()
 }

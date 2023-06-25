@@ -18,6 +18,15 @@ type MasterActor struct {
 // Init invoked on a start this process.
 func (s *MasterActor) Init(process *gen.ServerProcess, args ...etf.Term) error {
 	fmt.Printf("Init process: %s with name %q and args %v \n", process.Self(), process.Name(), args)
+	//opts := gen.RemoteSpawnOptions{
+	//	Name: "remote",
+	//}
+	//
+	//gotPid, err := process.RemoteSpawn("WsGate@localhost", "remote", opts, 1, 2, 3)
+	//if err != nil {
+	//	fmt.Println(133, err)
+	//}
+	//fmt.Println("OK", process.Name(), process.Self(), gotPid)
 	return nil
 }
 
