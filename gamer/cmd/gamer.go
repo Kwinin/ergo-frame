@@ -1,12 +1,10 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"flag"
 	"fmt"
-
 	"gamer/apps/gamerapp"
+	"gamer/lib"
 
 	"github.com/ergo-services/ergo"
 	"github.com/ergo-services/ergo/gen"
@@ -20,12 +18,12 @@ var (
 
 func init() {
 	// generate random value for cookie
-	buff := make([]byte, 12)
-	rand.Read(buff)
-	randomCookie := hex.EncodeToString(buff)
+	//buff := make([]byte, 12)
+	//rand.Read(buff)
+	//randomCookie := hex.EncodeToString(buff)
 
 	flag.StringVar(&OptionNodeName, "name", "Gamer@localhost", "node name")
-	flag.StringVar(&OptionNodeCookie, "cookie", randomCookie, "a secret cookie for interaction within the cluster")
+	flag.StringVar(&OptionNodeCookie, "cookie", "cookie123", "a secret cookie for interaction within the cluster")
 
 }
 
@@ -39,6 +37,8 @@ func main() {
 		gamerapp.CreateMyApp(),
 	}
 	options.Applications = apps
+	options.Proxy.Accept = true
+	options.Proxy.Transit = true
 
 	// Starting node
 	GamerNode, err := ergo.StartNode(OptionNodeName, OptionNodeCookie, options)
@@ -46,6 +46,8 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("Node %q is started\n", GamerNode.Name())
+
+	GamerNode.ProvideRemoteSpawn("remote", &lib.HandshakeGenServer{})
 
 	GamerNode.Wait()
 }

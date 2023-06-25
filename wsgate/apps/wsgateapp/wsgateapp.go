@@ -2,7 +2,6 @@ package wsgateapp
 
 import (
 	"fmt"
-
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 )

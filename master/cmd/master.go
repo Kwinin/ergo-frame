@@ -1,16 +1,12 @@
 package main
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"flag"
 	"fmt"
-
-	"master/apps/masterapp"
-
 	"github.com/ergo-services/ergo"
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
+	"master/apps/masterapp"
 )
 
 var (
@@ -20,12 +16,12 @@ var (
 
 func init() {
 	// generate random value for cookie
-	buff := make([]byte, 12)
-	rand.Read(buff)
-	randomCookie := hex.EncodeToString(buff)
+	//buff := make([]byte, 12)
+	//rand.Read(buff)
+	//randomCookie := hex.EncodeToString(buff)
 
 	flag.StringVar(&OptionNodeName, "name", "Master@localhost", "node name")
-	flag.StringVar(&OptionNodeCookie, "cookie", randomCookie, "a secret cookie for interaction within the cluster")
+	flag.StringVar(&OptionNodeCookie, "cookie", "cookie123", "a secret cookie for interaction within the cluster")
 
 }
 
@@ -39,6 +35,8 @@ func main() {
 		masterapp.CreateMasterApp(),
 	}
 	options.Applications = apps
+	options.Proxy.Flags = node.DefaultProxyFlags()
+	options.Proxy.Flags.EnableRemoteSpawn = false
 
 	// Starting node
 	MasterNode, err := ergo.StartNode(OptionNodeName, OptionNodeCookie, options)
@@ -46,6 +44,17 @@ func main() {
 		panic(err)
 	}
 	fmt.Printf("Node %q is started\n", MasterNode.Name())
+
+	route := node.ProxyRoute{
+		Name:  "Gamer@localhost",
+		Proxy: "WsGate@localhost",
+	}
+
+	MasterNode.AddProxyRoute(route)
+
+	if err := MasterNode.Connect("WsGate@localhost"); err != nil {
+		fmt.Println(111, err)
+	}
 
 	MasterNode.Wait()
 }
