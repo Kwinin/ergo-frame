@@ -60,16 +60,16 @@ func main() {
 		fmt.Println(111, err)
 	}
 
-	opts := gen.RemoteSpawnOptions{
-		Name: "gamer_remote",
-	}
-
-	process, _ := MasterNode.Spawn("gs1", gen.ProcessOptions{}, &masterapp.MasterActor{})
-
-	gotPid, err := process.RemoteSpawn(OptionGamerNodeName, "gamer_remote", opts, 1, 2, 3)
-	if err != nil {
-		fmt.Println(134, err)
-	}
-	fmt.Println("OK", process.Name(), process.Self(), gotPid)
+	//opts := gen.RemoteSpawnOptions{
+	//	Name: "gamer_remote",
+	//}
+	//
+	//process, _ := MasterNode.Spawn("gs1", gen.ProcessOptions{}, &masterapp.MasterActor{})
+	//
+	//gotPid, err := process.RemoteSpawn(OptionGamerNodeName, "gamer_remote", opts, 1, 2, 3)
+	//if err != nil {
+	//	fmt.Println(134, err)
+	//}
+	//fmt.Println("OK", process.Name(), process.Self(), gotPid)
 	MasterNode.Wait()
 }

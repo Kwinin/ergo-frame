@@ -1,0 +1,20 @@
+{application, master,
+    [
+        {description, ""},
+        {vsn, "1"},
+        {registered, []},
+        {applications, [
+            kernel,
+            stdlib,
+            lager,
+            common,
+            nitrogen_core,
+            simple_cache,
+            crypto,
+            nprocreg,
+            simple_bridge,
+            rekt
+        ]},
+        {mod, {master_app, []}},
+        {env, []}
+    ]}.

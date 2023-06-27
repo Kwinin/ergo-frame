@@ -1,0 +1,1 @@
+erl -detached -sname master_core -args_file  etc/vm.args -config etc/sys.config
