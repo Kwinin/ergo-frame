@@ -61,12 +61,12 @@ func main() {
 	WsGateNode.ProvideRemoteSpawn("wsgate_remote", &wsgateapp.WsGateActor{})
 
 	opts := gen.RemoteSpawnOptions{
-		Name: "gamer_remote",
+		Name: "player_remote",
 	}
 
-	process, _ := WsGateNode.Spawn("gs1", gen.ProcessOptions{}, &wsgateapp.WsGateActor{})
+	process, _ := WsGateNode.Spawn("gs1", gen.ProcessOptions{}, &wsgateapp.WsGateActor{}, nil)
 
-	gotPid, err := process.RemoteSpawn(OptionGamerNodeName, "gamer_remote", opts, 4, 6, 8)
+	gotPid, err := process.RemoteSpawn(OptionGamerNodeName, "player_remote", opts, 4, 6, 8)
 	if err != nil {
 		fmt.Println(134, err)
 	}

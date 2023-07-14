@@ -10,8 +10,8 @@ builds:
   - env:
       - CGO_ENABLED=0
     id: "ergo-frame-test-erlang"
-    binary: "main"
-    main: main.go
+    binary: "route"
+    main: route.go
     goos:
       - linux
       - windows

@@ -15,9 +15,25 @@ type GamerActor struct {
 	gen.Server
 }
 
+type makeCall struct {
+	to      interface{}
+	message interface{}
+}
+
 // Init invoked on a start this process.
 func (s *GamerActor) Init(process *gen.ServerProcess, args ...etf.Term) error {
-	fmt.Printf("Init process: %s with name %q and args %v \n", process.Self(), process.Name(), args)
+	fmt.Printf("Init GamerActor process: %s with name %q and args %v \n", process.Self(), process.Name(), args)
+	//message := etf.Tuple{etf.Atom("Kwinin Hello")}
+	//
+	//call := makeCall{
+	//	to:      process.Self(),
+	//	message: message,
+	//}
+	//result, e := process.Direct(call)
+	//if e != nil {
+	//	fmt.Println(e)
+	//}
+	//fmt.Println(result)
 	return nil
 }
 
