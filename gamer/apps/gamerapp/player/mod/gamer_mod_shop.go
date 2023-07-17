@@ -1,7 +1,6 @@
 package mod
 
 import (
-	"fmt"
 	"runtime"
 	"time"
 )
@@ -12,9 +11,9 @@ type Shop struct {
 func (s Shop) Name() string {
 	_, filename, _, ok := runtime.Caller(0)
 	if ok {
-		fmt.Println("当前文件名:", filename)
+		logger.Infof("当前文件名:%s", filename)
 	} else {
-		fmt.Println("无法获取当前文件名")
+		logger.Info("无法获取当前文件名")
 	}
 	return filename
 }

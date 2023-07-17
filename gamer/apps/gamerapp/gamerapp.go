@@ -1,11 +1,13 @@
 package gamerapp
 
 import (
-	"fmt"
+	"gamer/log"
 
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 )
+
+var logger = log.InfLog.GetLogger(log.Logrus{})
 
 func CreateMyApp() gen.ApplicationBehavior {
 	return &MyApp{}
@@ -30,5 +32,5 @@ func (app *MyApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
 }
 
 func (app *MyApp) Start(process gen.Process, args ...etf.Term) {
-	fmt.Printf("Application GamerApp started with Pid %s\n", process.Self())
+	logger.Infof("Application GamerApp started with Pid %s\n", process.Self())
 }

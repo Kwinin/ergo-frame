@@ -1,10 +1,12 @@
 package mod
 
 import (
-	"fmt"
+	"gamer/log"
 	"runtime"
 	"time"
 )
+
+var logger = log.InfLog.GetLogger(log.Logrus{})
 
 type Attr struct {
 }
@@ -12,9 +14,9 @@ type Attr struct {
 func (a Attr) Name() string {
 	_, filename, _, ok := runtime.Caller(0)
 	if ok {
-		fmt.Println("当前文件名:", filename)
+		logger.Warnf("当前文件名:%s", filename)
 	} else {
-		fmt.Println("无法获取当前文件名")
+		logger.Info("无法获取当前文件名")
 	}
 	return filename
 }

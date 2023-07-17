@@ -1,7 +1,6 @@
 package player
 
 import (
-	"fmt"
 	"gamer/apps/gamerapp/helper"
 	"gamer/apps/gamerapp/player/mod"
 	"github.com/ergo-services/ergo/etf"
@@ -13,19 +12,19 @@ type Server struct {
 }
 
 func (md *Server) InitCustom(process *CustomProcess, args ...etf.Term) error {
-	fmt.Printf("Started instance of MyCustom with PID %s and args %v\n", process.Self(), args)
+	logger.Infof("Started instance of MyCustom with PID %s and args %v\n", process.Self(), args)
 	LoopMod()
 	return nil
 }
 
 func (md *Server) HandleHello(process *CustomProcess) CustomStatus {
-	fmt.Println("got Hello")
+	logger.Info("got Hello")
 	return CustomStatusOK
 }
 
 func (md *Server) HandleCustomDirect(process *CustomProcess, message interface{}) (interface{}, error) {
 
-	fmt.Println("Say hi to increase counter twice")
+	logger.Info("Say hi to increase counter twice")
 	process.Hi()
 	return nil, nil
 }
@@ -54,7 +53,7 @@ func LoopModByMethods(methods []string) {
 
 			if methodValue.IsValid() && helper.IsValueExists(method.Name, methods) {
 				result := methodValue.Call([]reflect.Value{})
-				fmt.Println(222, result)
+				logger.Infof("result %+v", result)
 			}
 		}
 	}

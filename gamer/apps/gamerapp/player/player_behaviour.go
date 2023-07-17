@@ -55,16 +55,16 @@ var (
 // default Custom callbacks
 
 func (gd *Custom) HandleCustomCall(process *CustomProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
-	fmt.Printf("HandleCustomCall: unhandled message (from %#v) %#v\n", from, message)
+	logger.Infof("HandleCustomCall: unhandled message (from %#v) %#v\n", from, message)
 	return etf.Atom("ok"), gen.ServerStatusOK
 }
 
 func (gd *Custom) HandleCustomCast(process *CustomProcess, message etf.Term) gen.ServerStatus {
-	fmt.Printf("HandleCustomCast: unhandled message %#v\n", message)
+	logger.Infof("HandleCustomCast: unhandled message %#v\n", message)
 	return gen.ServerStatusOK
 }
 func (gd *Custom) HandleCustomInfo(process *CustomProcess, message etf.Term) gen.ServerStatus {
-	fmt.Printf("HandleCustomInfo: unhandled message %#v\n", message)
+	logger.Infof("HandleCustomInfo: unhandled message %#v\n", message)
 	return gen.ServerStatusOK
 }
 
