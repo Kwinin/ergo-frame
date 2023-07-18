@@ -4,6 +4,7 @@ import (
 	"flag"
 	"gamer/apps/gamerapp"
 	"gamer/apps/gamerapp/player"
+	"gamer/config"
 	"gamer/log"
 	"github.com/ergo-services/ergo"
 	"github.com/ergo-services/ergo/gen"
@@ -19,18 +20,27 @@ var (
 )
 
 func init() {
-	// generate random value for cookie
-	//buff := make([]byte, 12)
-	//rand.Read(buff)
-	//randomCookie := hex.EncodeToString(buff)
 	flag.StringVar(&OptionGamerNodeName, "gamer_name", "Gamer@localhost", "node gamer_name")
 	flag.StringVar(&OptionWsGateNodeName, "wsgate_name", "WsGate@localhost", "node wsgate_name")
 	flag.StringVar(&OptionMasterNodeName, "master_name", "Master@localhost", "node master_name")
 	flag.StringVar(&OptionNodeCookie, "cookie", "cookie123", "a secret cookie for interaction within the cluster")
-
 }
 
 func main() {
+	configPath := "./conf"
+	err := config.InitConfig(configPath)
+	if err != nil {
+		logger.Error(err)
+	}
+
+	//go func() {
+	//	for {
+	//
+	//		fmt.Printf("kwinin  %v %v\n", config.Cfg.DATABASE.Url, config.Cfg.DATABASE.Username)
+	//		time.Sleep(5 * time.Second)
+	//	}
+	//}()
+
 	var options node.Options
 
 	flag.Parse()
