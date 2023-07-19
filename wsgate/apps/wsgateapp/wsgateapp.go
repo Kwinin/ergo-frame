@@ -1,10 +1,12 @@
 package wsgateapp
 
 import (
-	"fmt"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
+	"wsgate/log"
 )
+
+var logger = log.InfLog.GetLogger(log.Logrus{})
 
 func CreateWsGateApp() gen.ApplicationBehavior {
 	return &WsGateApp{}
@@ -29,5 +31,5 @@ func (app *WsGateApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
 }
 
 func (app *WsGateApp) Start(process gen.Process, args ...etf.Term) {
-	fmt.Printf("Application WsGateApp started with Pid %s\n", process.Self())
+	logger.Infof("Application WsGateApp started with Pid %s\n", process.Self())
 }

@@ -1,10 +1,12 @@
 package masterapp
 
 import (
-	"fmt"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
+	"master/log"
 )
+
+var logger = log.InfLog.GetLogger(log.Logrus{})
 
 func CreateMasterApp() gen.ApplicationBehavior {
 	return &MasterApp{}
@@ -29,6 +31,6 @@ func (app *MasterApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
 }
 
 func (app *MasterApp) Start(process gen.Process, args ...etf.Term) {
-	fmt.Printf("Application MasterApp started with Pid %s\n", process.Self())
+	logger.Infof("Application MasterApp started with Pid %s\n", process.Self())
 
 }

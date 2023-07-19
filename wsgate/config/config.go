@@ -2,9 +2,9 @@ package config
 
 import (
 	"fmt"
-	"gamer/log"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
+	"wsgate/log"
 )
 
 var logger = log.InfLog.GetLogger(log.Logrus{})

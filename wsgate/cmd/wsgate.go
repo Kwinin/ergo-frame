@@ -7,7 +7,11 @@ import (
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
 	"wsgate/apps/wsgateapp"
+	"wsgate/config"
+	"wsgate/log"
 )
+
+var logger = log.InfLog.GetLogger(log.Logrus{})
 
 var (
 	OptionGamerNodeName  string
@@ -30,6 +34,12 @@ func init() {
 }
 
 func main() {
+	configPath := "./conf"
+	err := config.InitConfig(configPath)
+	if err != nil {
+		logger.Error(err)
+	}
+
 	var options node.Options
 
 	flag.Parse()
@@ -56,7 +66,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Node %q is started\n", WsGateNode.Name())
+	logger.Infof("Node %q is started\n", WsGateNode.Name())
 
 	WsGateNode.ProvideRemoteSpawn("wsgate_remote", &wsgateapp.WsGateActor{})
 
@@ -70,7 +80,7 @@ func main() {
 	if err != nil {
 		fmt.Println(134, err)
 	}
-	fmt.Println("OK", process.Name(), process.Self(), gotPid)
+	logger.Info("OK ", process.Name(), process.Self(), gotPid)
 
 	WsGateNode.Wait()
 }

@@ -7,7 +7,11 @@ import (
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
 	"master/apps/masterapp"
+	"master/config"
+	"master/log"
 )
+
+var logger = log.InfLog.GetLogger(log.Logrus{})
 
 var (
 	OptionGamerNodeName  string
@@ -30,6 +34,12 @@ func init() {
 }
 
 func main() {
+	configPath := "./conf"
+	err := config.InitConfig(configPath)
+	if err != nil {
+		logger.Error(err)
+	}
+
 	var options node.Options
 
 	flag.Parse()
@@ -47,7 +57,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Node %q is started\n", MasterNode.Name())
+	logger.Infof("Node %q is started\n", MasterNode.Name())
 
 	route := node.ProxyRoute{
 		Name:  OptionGamerNodeName,

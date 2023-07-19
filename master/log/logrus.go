@@ -93,5 +93,6 @@ func (f *CustomFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	//2023-07-14 15:58:55.209 [info] <0.2115.0> [tcp_handler_98] terminate: <0.2115.0>, playerid: 10002929, playerpid: <15480.744.8>
 	// 构建输出的字符串
 	msg := fmt.Sprintf("%s [%s] [%s_%d] %s\n", timestamp, entry.Level, entry.Data["file"], entry.Data["line"], entry.Message)
+
 	return []byte(msg), nil
 }
