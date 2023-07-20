@@ -31,5 +31,14 @@ func (app *WsGateApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
 }
 
 func (app *WsGateApp) Start(process gen.Process, args ...etf.Term) {
+	app.initApp()
 	logger.Infof("Application WsGateApp started with Pid %s\n", process.Self())
+}
+
+func (app *WsGateApp) initApp() {
+	app.startHttp()
+
+}
+func (app *WsGateApp) startHttp() {
+
 }

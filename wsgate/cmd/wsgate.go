@@ -82,5 +82,27 @@ func main() {
 	}
 	logger.Info("OK ", process.Name(), process.Self(), gotPid)
 
+	//fmt.Println(3434, config.Cfg.Tcp.Host)
+	//hostPort := net.JoinHostPort(config.Cfg.Tcp.Host, strconv.Itoa(config.Cfg.Tcp.Port))
+	//dialer := net.Dialer{}
+	//
+	//var connection net.Conn
+	//
+	//connection, err = dialer.Dial("tcp", hostPort)
+	//
+	//if err != nil {
+	//	return
+	//}
+	//
+	//defer connection.Close()
+	//
+	//for i := 0; i < 5; i++ {
+	//	str := lib.RandomString(16)
+	//
+	//	fmt.Printf("send string %q to %q\n", str, connection.RemoteAddr().String())
+	//	connection.Write([]byte(str))
+	//	time.Sleep(time.Second)
+	//}
+
 	WsGateNode.Wait()
 }

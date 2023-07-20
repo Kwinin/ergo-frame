@@ -21,6 +21,14 @@ func (sup *WsGateSup) Init(args ...etf.Term) (gen.SupervisorSpec, error) {
 				Name:  "wsgateactor",
 				Child: createWsGateActor(),
 			},
+			gen.SupervisorChildSpec{
+				Name:  "tcp",
+				Child: createTcpActor(),
+			},
+			gen.SupervisorChildSpec{
+				Name:  "web",
+				Child: createWebActor(),
+			},
 		},
 		Strategy: gen.SupervisorStrategy{
 			Type:      gen.SupervisorStrategyOneForOne,

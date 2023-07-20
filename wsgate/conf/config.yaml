@@ -1,5 +1,8 @@
-database:
-  url: "loch:22233"
-  username: "rdfds3332"
-  password: "pasddor342"
-
+tcp:
+  host: "127.0.0.1"
+  port: 4343
+  enable: false
+web:
+  host: "127.0.0.1"
+  port: 8080
+  enable: false
