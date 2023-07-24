@@ -11,6 +11,8 @@ import (
 	//"gopkg.in/natefinch/lumberjack.v2"
 )
 
+var log *logrus.Logger
+
 type Logrus struct {
 }
 

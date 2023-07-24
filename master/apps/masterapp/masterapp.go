@@ -3,6 +3,8 @@ package masterapp
 import (
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
+	"github.com/sirupsen/logrus"
+	"master/config"
 	"master/log"
 )
 
@@ -12,8 +14,15 @@ func CreateMasterApp() gen.ApplicationBehavior {
 	return &MasterApp{}
 }
 
+type GbVar struct {
+	name   string
+	cfg    config.Conf
+	logger *logrus.Logger
+}
+
 type MasterApp struct {
 	gen.Application
+	GbVar
 }
 
 func (app *MasterApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
@@ -31,6 +40,11 @@ func (app *MasterApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
 }
 
 func (app *MasterApp) Start(process gen.Process, args ...etf.Term) {
-	logger.Infof("Application MasterApp started with Pid %s\n", process.Self())
+	app.setGbLogger()
+	app.logger.Infof("Application MasterApp started with Pid %s\n", process.Self())
 
+}
+
+func (app *MasterApp) setGbLogger() {
+	app.logger = logger
 }

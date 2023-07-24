@@ -8,8 +8,8 @@ import (
 )
 
 var logger = log.InfLog.GetLogger(log.Logrus{})
-
 var Config *viper.Viper
+var Cfg Conf
 
 func InitConfig(configPath string) error {
 	Config = viper.New()
