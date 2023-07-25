@@ -1,5 +1,3 @@
-database:
-  url: "loch:22233"
-  username: "rdfds3332"
-  password: "pasddor342"
-
+ssdb:
+  host: "127.0.0.1"
+  port: 8888

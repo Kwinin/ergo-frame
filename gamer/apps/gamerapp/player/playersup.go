@@ -1,12 +1,9 @@
 package player
 
 import (
-	"gamer/log"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 )
-
-var logger = log.InfLog.GetLogger(log.Logrus{})
 
 func CreatePlayerSup() gen.SupervisorBehavior {
 	return &PlayerSup{}

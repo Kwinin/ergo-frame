@@ -14,11 +14,11 @@ import (
 type Logrus struct {
 }
 
-func init() {
-	log = logrus.New()
+func InitLogger() {
+	Logger = logrus.New()
 
 	// 设置日志输出格式为JSON格式
-	log.SetFormatter(&CustomFormatter{
+	Logger.SetFormatter(&CustomFormatter{
 		TimestampFormat: "2006-01-02 15:04:05.000000",
 	})
 
@@ -36,18 +36,18 @@ func init() {
 		//})
 		// 创建MultiWriter，同时输出到文件和控制台
 		mw := io.MultiWriter(file, os.Stdout)
-		log.SetOutput(mw)
+		Logger.SetOutput(mw)
 	} else {
-		log.Info("无法打开日志文件，日志将仅输出到控制台")
+		Logger.Info("无法打开日志文件，日志将仅输出到控制台")
 	}
 
 	// 添加日志钩子，记录文件位置
-	log.AddHook(NewCallerHook())
+	Logger.AddHook(NewCallerHook())
 }
 
 // 获取日志实例
 func (l Logrus) GetLogger() *logrus.Logger {
-	return log
+	return Logger
 }
 
 // 自定义日志钩子，记录文件位置

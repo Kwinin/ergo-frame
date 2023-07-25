@@ -1,23 +1,26 @@
 package gamerapp
 
 import (
+	"gamer/apps/gamerapp/db"
+	"gamer/common"
+	"gamer/config"
 	"gamer/log"
-
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 )
 
-var logger = log.InfLog.GetLogger(log.Logrus{})
-
-func CreateMyApp() gen.ApplicationBehavior {
-	return &MyApp{}
-}
-
-type MyApp struct {
+type GamerApp struct {
 	gen.Application
+	common.GbVar
 }
 
-func (app *MyApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
+func CreateGamerApp() gen.ApplicationBehavior {
+	return &GamerApp{}
+}
+
+func (app *GamerApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
+
+	app.initApp()
 	return gen.ApplicationSpec{
 		Name:        "gamerapp",
 		Description: "description of this application",
@@ -31,6 +34,26 @@ func (app *MyApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
 	}, nil
 }
 
-func (app *MyApp) Start(process gen.Process, args ...etf.Term) {
-	logger.Infof("Application GamerApp started with Pid %s\n", process.Self())
+func (app *GamerApp) Start(process gen.Process, args ...etf.Term) {
+	log.Logger.Infof("Application GamerApp started with Pid %s\n", process.Self())
+}
+
+func (app *GamerApp) initApp() {
+	app.setGbConfig()
+	app.setGbDb()
+}
+
+func (app *GamerApp) setGbConfig() {
+	app.Cfg = config.Cfg
+
+}
+
+func (app *GamerApp) setGbDb() {
+	db, err := db.NewDBClient(app.Cfg.SSDB.Host, app.Cfg.SSDB.Port)
+	if err != nil {
+		log.Logger.Errorf("%+v", err)
+	}
+	log.Logger.Info("connect ssdb successful")
+	app.DB = db
+
 }

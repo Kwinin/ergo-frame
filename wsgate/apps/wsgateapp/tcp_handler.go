@@ -2,6 +2,7 @@ package wsgateapp
 
 import (
 	"github.com/ergo-services/ergo/gen"
+	"wsgate/log"
 )
 
 type tcpHandler struct {
@@ -9,15 +10,15 @@ type tcpHandler struct {
 }
 
 func (th *tcpHandler) HandleConnect(process *gen.TCPHandlerProcess, conn *gen.TCPConnection) gen.TCPHandlerStatus {
-	logger.Infof("[TCP handler] got new connection from %q\n", conn.Addr.String())
+	log.Logger.Infof("[TCP handler] got new connection from %q\n", conn.Addr.String())
 	return gen.TCPHandlerStatusOK
 }
 func (th *tcpHandler) HandleDisconnect(process *gen.TCPHandlerProcess, conn *gen.TCPConnection) {
-	logger.Infof("[TCP handler] connection with %q terminated\n", conn.Addr.String())
+	log.Logger.Infof("[TCP handler] connection with %q terminated\n", conn.Addr.String())
 }
 
 func (th *tcpHandler) HandlePacket(process *gen.TCPHandlerProcess, packet []byte, conn *gen.TCPConnection) (int, int, gen.TCPHandlerStatus) {
-	logger.Infof("[TCP handler] got message from %q: %q\n", conn.Addr.String(), string(packet))
+	log.Logger.Infof("[TCP handler] got message from %q: %q\n", conn.Addr.String(), string(packet))
 
 	// If you want to send a reply message, use conn.Socket.Write(reply) for that.
 

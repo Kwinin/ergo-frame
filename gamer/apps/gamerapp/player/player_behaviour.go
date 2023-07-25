@@ -2,6 +2,7 @@ package player
 
 import (
 	"fmt"
+	"gamer/log"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 )
@@ -55,16 +56,16 @@ var (
 // default Custom callbacks
 
 func (gd *Custom) HandleCustomCall(process *CustomProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
-	logger.Infof("HandleCustomCall: unhandled message (from %#v) %#v\n", from, message)
+	log.Logger.Infof("HandleCustomCall: unhandled message (from %#v) %#v\n", from, message)
 	return etf.Atom("ok"), gen.ServerStatusOK
 }
 
 func (gd *Custom) HandleCustomCast(process *CustomProcess, message etf.Term) gen.ServerStatus {
-	logger.Infof("HandleCustomCast: unhandled message %#v\n", message)
+	log.Logger.Infof("HandleCustomCast: unhandled message %#v\n", message)
 	return gen.ServerStatusOK
 }
 func (gd *Custom) HandleCustomInfo(process *CustomProcess, message etf.Term) gen.ServerStatus {
-	logger.Infof("HandleCustomInfo: unhandled message %#v\n", message)
+	log.Logger.Infof("HandleCustomInfo: unhandled message %#v\n", message)
 	return gen.ServerStatusOK
 }
 

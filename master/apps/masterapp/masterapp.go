@@ -8,8 +8,6 @@ import (
 	"master/log"
 )
 
-var logger = log.InfLog.GetLogger(log.Logrus{})
-
 func CreateMasterApp() gen.ApplicationBehavior {
 	return &MasterApp{}
 }
@@ -46,5 +44,5 @@ func (app *MasterApp) Start(process gen.Process, args ...etf.Term) {
 }
 
 func (app *MasterApp) setGbLogger() {
-	app.logger = logger
+	app.logger = log.Logger
 }

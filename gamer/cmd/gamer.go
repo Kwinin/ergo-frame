@@ -11,7 +11,6 @@ import (
 	"github.com/ergo-services/ergo/node"
 )
 
-var logger = log.InfLog.GetLogger(log.Logrus{})
 var (
 	OptionGamerNodeName  string
 	OptionWsGateNodeName string
@@ -27,10 +26,12 @@ func init() {
 }
 
 func main() {
+	log.InitLogger()
+
 	configPath := "./conf"
 	err := config.InitConfig(configPath)
 	if err != nil {
-		logger.Error(err)
+		log.Logger.Error(err)
 	}
 
 	//go func() {
@@ -47,7 +48,7 @@ func main() {
 
 	// Create applications that must be started
 	apps := []gen.ApplicationBehavior{
-		gamerapp.CreateMyApp(),
+		gamerapp.CreateGamerApp(),
 	}
 	options.Applications = apps
 	options.Proxy.Accept = true
@@ -58,9 +59,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	logger.Infof("Node %q is started\n", GamerNode.Name())
-
-	GamerNode.ProvideRemoteSpawn("gamer_remote", &gamerapp.GamerActor{})
+	log.Logger.Infof("Node %q is started\n", GamerNode.Name())
+	//
+	//GamerNode.ProvideRemoteSpawn("gamer_remote", &gamerapp.GamerActor{})
 	GamerNode.ProvideRemoteSpawn("player_remote", &player.Actor{})
 
 	GamerNode.Wait()

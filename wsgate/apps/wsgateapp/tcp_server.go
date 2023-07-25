@@ -6,6 +6,7 @@ import (
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/lib"
 	"wsgate/config"
+	"wsgate/log"
 )
 
 func createTcpActor() gen.ServerBehavior {
@@ -25,8 +26,8 @@ func (ts *tcpServer) InitTCP(process *gen.TCPProcess, args ...etf.Term) (gen.TCP
 
 	if config.Cfg.Tcp.Enable {
 		cert, _ := lib.GenerateSelfSignedCert("localhost")
-		logger.Println("TLS enabled. Generated self signed certificate. You may check it with command below:")
-		logger.Infof("   $ openssl s_client -connect %s:%d\n", config.Cfg.Tcp.Host, config.Cfg.Tcp.Port)
+		log.Logger.Println("TLS enabled. Generated self signed certificate. You may check it with command below:")
+		log.Logger.Infof("   $ openssl s_client -connect %s:%d\n", config.Cfg.Tcp.Host, config.Cfg.Tcp.Port)
 		options.TLS = &tls.Config{
 			Certificates:       []tls.Certificate{cert},
 			InsecureSkipVerify: true,

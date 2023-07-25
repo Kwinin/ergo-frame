@@ -7,9 +7,9 @@ import (
 	"github.com/spf13/viper"
 )
 
-var logger = log.InfLog.GetLogger(log.Logrus{})
-
 var Config *viper.Viper
+
+var Cfg Conf
 
 func InitConfig(configPath string) error {
 	Config = viper.New()
@@ -31,7 +31,7 @@ func InitConfig(configPath string) error {
 		// 重新解析配置文件到结构体
 		err := Config.Unmarshal(&Cfg)
 		if err != nil {
-			logger.Infof("无法重新解析配置文件：%s \n", err)
+			log.Logger.Infof("无法重新解析配置文件：%s \n", err)
 			return
 		}
 	})
@@ -45,14 +45,14 @@ func InitConfig(configPath string) error {
 func watchFileSystem(configPath string) {
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		logger.Info("无法启动文件系统监视：", err)
+		log.Logger.Info("无法启动文件系统监视：", err)
 		return
 	}
 	defer watcher.Close()
 
 	err = watcher.Add(configPath)
 	if err != nil {
-		logger.Info("无法添加监视目录：", err)
+		log.Logger.Info("无法添加监视目录：", err)
 		return
 	}
 
@@ -63,7 +63,7 @@ func watchFileSystem(configPath string) {
 				return
 			}
 			if event.Op&fsnotify.Write == fsnotify.Write {
-				logger.Info("配置文件被修改：", event.Name)
+				log.Logger.Info("配置文件被修改：", event.Name)
 				// 触发配置文件更新操作
 				Config.ReadInConfig()
 			}
@@ -71,7 +71,7 @@ func watchFileSystem(configPath string) {
 			if !ok {
 				return
 			}
-			logger.Info("文件系统监视错误：", err)
+			log.Logger.Info("文件系统监视错误：", err)
 		}
 	}
 }

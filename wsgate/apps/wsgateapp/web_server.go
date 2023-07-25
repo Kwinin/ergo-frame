@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/websocket"
 	"net/http"
 	"wsgate/config"
+	"wsgate/log"
 )
 
 func createWebActor() gen.ServerBehavior {
@@ -43,7 +44,7 @@ func (w *webServer) InitWeb(process *gen.WebProcess, args ...etf.Term) (gen.WebO
 	mux.HandleFunc("/ws", handleWebSocketConnection)
 	options.Handler = mux
 
-	logger.Infof("Start Web server on %s://%s:%d/\n", proto, options.Host, options.Port)
+	log.Logger.Infof("Start Web server on %s://%s:%d/\n", proto, options.Host, options.Port)
 
 	return options, nil
 }
@@ -57,7 +58,7 @@ func handleWebSocketConnection(w http.ResponseWriter, r *http.Request) {
 	// Upgrade HTTP request to WebSocket connection
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		logger.Error("Error upgrading connection:", err)
+		log.Logger.Error("Error upgrading connection:", err)
 		return
 	}
 	defer conn.Close()
@@ -66,12 +67,12 @@ func handleWebSocketConnection(w http.ResponseWriter, r *http.Request) {
 		// Read message from the client
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			logger.Error("Error reading message:", err)
+			log.Logger.Error("Error reading message:", err)
 			break
 		}
 
 		// Print the received message
-		logger.Infof("Received message: %s\n", message)
+		log.Logger.Infof("Received message: %s\n", message)
 
 		// Send a response back to the client
 		response := "This is the server response."

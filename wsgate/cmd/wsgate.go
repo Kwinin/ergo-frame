@@ -11,8 +11,6 @@ import (
 	"wsgate/log"
 )
 
-var logger = log.InfLog.GetLogger(log.Logrus{})
-
 var (
 	OptionGamerNodeName  string
 	OptionWsGateNodeName string
@@ -34,10 +32,12 @@ func init() {
 }
 
 func main() {
+	log.InitLogger()
+
 	configPath := "./conf"
 	err := config.InitConfig(configPath)
 	if err != nil {
-		logger.Error(err)
+		log.Logger.Error(err)
 	}
 
 	var options node.Options
@@ -66,7 +66,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	logger.Infof("Node %q is started\n", WsGateNode.Name())
+	log.Logger.Infof("Node %q is started\n", WsGateNode.Name())
 
 	WsGateNode.ProvideRemoteSpawn("wsgate_remote", &wsgateapp.WsGateActor{})
 
@@ -80,7 +80,7 @@ func main() {
 	if err != nil {
 		fmt.Println(134, err)
 	}
-	logger.Info("OK ", process.Name(), process.Self(), gotPid)
+	log.Logger.Info("OK ", process.Name(), process.Self(), gotPid)
 
 	//fmt.Println(3434, config.Cfg.Tcp.Host)
 	//hostPort := net.JoinHostPort(config.Cfg.Tcp.Host, strconv.Itoa(config.Cfg.Tcp.Port))

@@ -3,14 +3,11 @@ package wsgateapp
 import (
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
-	"github.com/seefan/gossdb"
 	"github.com/sirupsen/logrus"
 	"wsgate/apps/wsgateapp/db"
 	"wsgate/config"
 	"wsgate/log"
 )
-
-var logger = log.InfLog.GetLogger(log.Logrus{})
 
 //	type InfAppDb interface {
 //		NewDBClient() (*db.DBClient, error)
@@ -19,7 +16,7 @@ var logger = log.InfLog.GetLogger(log.Logrus{})
 type GbVar struct {
 	name   string
 	cfg    config.Conf
-	db     *gossdb.Client
+	db     *db.DBClient
 	logger *logrus.Logger
 }
 
@@ -48,7 +45,7 @@ func (app *WsGateApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
 
 func (app *WsGateApp) Start(process gen.Process, args ...etf.Term) {
 	app.initApp()
-	logger.Infof("Application App started with Pid %s\n", process.Self())
+	log.Logger.Infof("Application App started with Pid %s\n", process.Self())
 }
 
 func (app *WsGateApp) initApp() {
@@ -62,11 +59,11 @@ func (app *WsGateApp) setGbConfig() {
 
 }
 func (app *WsGateApp) setGbDb() {
-	db, err := db.GetDBClient()
+	db, err := db.NewDBClient(app.cfg.SSDB.Host, app.cfg.SSDB.Port)
 	if err != nil {
-		logger.Errorf("%+v", err)
+		log.Logger.Errorf("%+v", err)
 	}
-	app.logger.Info("连接SSDB数据库成功")
+	app.logger.Info("connect ssdb successful")
 	app.db = db
 
 }
@@ -75,5 +72,5 @@ func (app *WsGateApp) startHttp() {
 }
 
 func (app *WsGateApp) setGbLogger() {
-	app.logger = logger
+	app.logger = log.Logger
 }
