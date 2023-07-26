@@ -8,19 +8,25 @@ import (
 	"github.com/ergo-services/ergo/lib"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"wsgate/common"
 	"wsgate/config"
 	"wsgate/log"
 )
 
-func createWebActor() gen.ServerBehavior {
-	return &webServer{}
+func createWebActor(gbVar common.GbVar) gen.ServerBehavior {
+	return &webServer{GbVar: common.GbVar{
+		NodeName: gbVar.NodeName,
+		Cfg:      gbVar.Cfg,
+		DB:       gbVar.DB,
+	}}
 }
 
 type webServer struct {
 	gen.Web
+	common.GbVar
 }
 
-func (w *webServer) InitWeb(process *gen.WebProcess, args ...etf.Term) (gen.WebOptions, error) {
+func (web *webServer) InitWeb(process *gen.WebProcess, args ...etf.Term) (gen.WebOptions, error) {
 	var options gen.WebOptions
 
 	options.Port = uint16(config.Cfg.Web.Port)
@@ -41,7 +47,7 @@ func (w *webServer) InitWeb(process *gen.WebProcess, args ...etf.Term) (gen.WebO
 
 	webRoot := process.StartWebHandler(&rootHandler{}, gen.WebHandlerOptions{})
 	mux.Handle("/", webRoot)
-	mux.HandleFunc("/ws", handleWebSocketConnection)
+	mux.HandleFunc("/ws", web.handleWebSocketConnection)
 	options.Handler = mux
 
 	log.Logger.Infof("Start Web server on %s://%s:%d/\n", proto, options.Host, options.Port)
@@ -54,9 +60,9 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func handleWebSocketConnection(w http.ResponseWriter, r *http.Request) {
+func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *http.Request) {
 	// Upgrade HTTP request to WebSocket connection
-	conn, err := upgrader.Upgrade(w, r, nil)
+	conn, err := upgrader.Upgrade(writer, r, nil)
 	if err != nil {
 		log.Logger.Error("Error upgrading connection:", err)
 		return
@@ -73,7 +79,7 @@ func handleWebSocketConnection(w http.ResponseWriter, r *http.Request) {
 
 		// Print the received message
 		log.Logger.Infof("Received message: %s\n", message)
-
+		web.DB.Set("kwinin", string(message))
 		// Send a response back to the client
 		response := "This is the server response."
 		err = conn.WriteMessage(websocket.TextMessage, []byte(response))

@@ -1,12 +1,14 @@
 package mod
 
 import (
+	"gamer/common"
 	"gamer/log"
 	"runtime"
 	"time"
 )
 
 type Shop struct {
+	common.GbVar
 }
 
 func (s Shop) Name() string {
@@ -16,6 +18,10 @@ func (s Shop) Name() string {
 	} else {
 		log.Logger.Info("无法获取当前文件名")
 	}
+
+	result, _ := s.DB.Get("my_key")
+
+	log.Logger.Infof("******* %v", result)
 	return filename
 }
 

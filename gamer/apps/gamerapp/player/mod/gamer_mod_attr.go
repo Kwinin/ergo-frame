@@ -1,12 +1,14 @@
 package mod
 
 import (
+	"gamer/common"
 	"gamer/log"
 	"runtime"
 	"time"
 )
 
 type Attr struct {
+	common.GbVar
 }
 
 func (a Attr) Name() string {

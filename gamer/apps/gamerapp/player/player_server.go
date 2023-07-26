@@ -3,6 +3,7 @@ package player
 import (
 	"gamer/apps/gamerapp/helper"
 	"gamer/apps/gamerapp/player/mod"
+	"gamer/common"
 	"gamer/log"
 	"github.com/ergo-services/ergo/etf"
 	"reflect"
@@ -10,11 +11,12 @@ import (
 
 type Server struct {
 	Custom
+	common.GbVar
 }
 
 func (md *Server) InitCustom(process *CustomProcess, args ...etf.Term) error {
 	log.Logger.Infof("Started instance of MyCustom with PID %s and args %v\n", process.Self(), args)
-	LoopMod()
+	md.LoopMod()
 	return nil
 }
 
@@ -35,14 +37,27 @@ type ModInf interface {
 	OnDate() string
 }
 
-func LoopMod() {
+func (md *Server) LoopMod() {
 	Names := []string{"Name"}
-	LoopModByMethods(Names)
+	md.LoopModByMethods(Names)
 }
 
-func LoopModByMethods(methods []string) {
+func (md *Server) LoopModByMethods(methods []string) {
 	mods := []ModInf{
-		mod.Attr{}, mod.Shop{},
+		mod.Attr{
+			common.GbVar{
+				NodeName: md.NodeName,
+				Cfg:      md.Cfg,
+				DB:       md.DB,
+			},
+		},
+		mod.Shop{
+			common.GbVar{
+				NodeName: md.NodeName,
+				Cfg:      md.Cfg,
+				DB:       md.DB,
+			},
+		},
 	}
 	for _, animal := range mods {
 		modValue := reflect.ValueOf(animal)

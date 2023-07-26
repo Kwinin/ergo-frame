@@ -2,18 +2,26 @@ package player
 
 import (
 	"gamer/apps/gamerapp/lib"
+	"gamer/common"
 	"gamer/log"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 	"time"
 )
 
-func createPlayerActor() gen.ServerBehavior {
-	return &Actor{}
+func createPlayerActor(gbVar common.GbVar) gen.ServerBehavior {
+	return &Actor{
+		GbVar: common.GbVar{
+			NodeName: gbVar.NodeName,
+			Cfg:      gbVar.Cfg,
+			DB:       gbVar.DB,
+		},
+	}
 }
 
 type Actor struct {
 	gen.Server
+	common.GbVar
 }
 
 func (s *Actor) LaunchPid(PlayerId, ServerId int) {
@@ -26,7 +34,10 @@ func (s *Actor) Init(process *gen.ServerProcess, args ...etf.Term) error {
 	if process.Name() == "player_remote" {
 		role := lib.RoleLib{}
 		OnLogin()
-		role.LaunchRolePid(process, lib.RoleTag{Tag: "player", RoleId: 3434}, &Server{}, 222, 343)
+		role.LaunchRolePid(process, lib.RoleTag{Tag: "player", RoleId: 3434}, &Server{GbVar: common.GbVar{
+			NodeName: s.NodeName,
+			Cfg:      s.Cfg,
+			DB:       s.DB}}, 222, 343)
 	}
 	return nil
 }

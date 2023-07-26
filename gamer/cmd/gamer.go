@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"gamer/apps/gamerapp"
+	"gamer/apps/gamerapp/db"
 	"gamer/apps/gamerapp/player"
+	"gamer/common"
 	"gamer/config"
 	"gamer/log"
 	"github.com/ergo-services/ergo"
@@ -34,6 +36,16 @@ func main() {
 		log.Logger.Error(err)
 	}
 
+	db, err := db.NewDBClient(config.Cfg.SSDB.Host, config.Cfg.SSDB.Port)
+	if err != nil {
+		log.Logger.Errorf("%+v", err)
+	}
+
+	gbVar := common.GbVar{
+		NodeName: OptionGamerNodeName,
+		Cfg:      config.Cfg,
+		DB:       db,
+	}
 	//go func() {
 	//	for {
 	//
@@ -48,7 +60,7 @@ func main() {
 
 	// Create applications that must be started
 	apps := []gen.ApplicationBehavior{
-		gamerapp.CreateGamerApp(),
+		gamerapp.CreateGamerApp(gbVar),
 	}
 	options.Applications = apps
 	options.Proxy.Accept = true
@@ -61,8 +73,8 @@ func main() {
 	}
 	log.Logger.Infof("Node %q is started\n", GamerNode.Name())
 	//
-	//GamerNode.ProvideRemoteSpawn("gamer_remote", &gamerapp.GamerActor{})
-	GamerNode.ProvideRemoteSpawn("player_remote", &player.Actor{})
+	GamerNode.ProvideRemoteSpawn("gamer_remote", &gamerapp.GamerActor{})
+	GamerNode.ProvideRemoteSpawn("player_remote", &player.Actor{GbVar: gbVar})
 
 	GamerNode.Wait()
 }

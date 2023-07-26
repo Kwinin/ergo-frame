@@ -3,14 +3,20 @@ package wsgateapp
 import (
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
+	"wsgate/common"
 )
 
-func createWsGateSup() gen.SupervisorBehavior {
-	return &WsGateSup{}
+func createWsGateSup(gbVar common.GbVar) gen.SupervisorBehavior {
+	return &WsGateSup{GbVar: common.GbVar{
+		NodeName: gbVar.NodeName,
+		Cfg:      gbVar.Cfg,
+		DB:       gbVar.DB,
+	}}
 }
 
 type WsGateSup struct {
 	gen.Supervisor
+	common.GbVar
 }
 
 func (sup *WsGateSup) Init(args ...etf.Term) (gen.SupervisorSpec, error) {
@@ -26,8 +32,12 @@ func (sup *WsGateSup) Init(args ...etf.Term) (gen.SupervisorSpec, error) {
 				Child: createTcpActor(),
 			},
 			gen.SupervisorChildSpec{
-				Name:  "web",
-				Child: createWebActor(),
+				Name: "web",
+				Child: createWebActor(common.GbVar{
+					NodeName: sup.NodeName,
+					Cfg:      sup.Cfg,
+					DB:       sup.DB,
+				}),
 			},
 		},
 		Strategy: gen.SupervisorStrategy{

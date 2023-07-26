@@ -7,6 +7,8 @@ import (
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
 	"wsgate/apps/wsgateapp"
+	"wsgate/apps/wsgateapp/db"
+	"wsgate/common"
 	"wsgate/config"
 	"wsgate/log"
 )
@@ -40,13 +42,24 @@ func main() {
 		log.Logger.Error(err)
 	}
 
+	db, err := db.NewDBClient(config.Cfg.SSDB.Host, config.Cfg.SSDB.Port)
+	if err != nil {
+		log.Logger.Errorf("%+v", err)
+	}
+
+	gbVar := common.GbVar{
+		NodeName: OptionWsGateNodeName,
+		Cfg:      config.Cfg,
+		DB:       db,
+	}
+
 	var options node.Options
 
 	flag.Parse()
 
 	// Create applications that must be started
 	apps := []gen.ApplicationBehavior{
-		wsgateapp.CreateWsGateApp(),
+		wsgateapp.CreateWsGateApp(gbVar),
 	}
 
 	listener := node.Listener{

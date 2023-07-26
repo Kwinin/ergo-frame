@@ -1,9 +1,7 @@
 package gamerapp
 
 import (
-	"gamer/apps/gamerapp/db"
 	"gamer/common"
-	"gamer/config"
 	"gamer/log"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
@@ -14,8 +12,12 @@ type GamerApp struct {
 	common.GbVar
 }
 
-func CreateGamerApp() gen.ApplicationBehavior {
-	return &GamerApp{}
+func CreateGamerApp(gbVar common.GbVar) gen.ApplicationBehavior {
+	return &GamerApp{GbVar: common.GbVar{
+		NodeName: gbVar.NodeName,
+		Cfg:      gbVar.Cfg,
+		DB:       gbVar.DB,
+	}}
 }
 
 func (app *GamerApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
@@ -27,8 +29,12 @@ func (app *GamerApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
 		Version:     "v.1.0",
 		Children: []gen.ApplicationChildSpec{
 			gen.ApplicationChildSpec{
-				Name:  "gamersup",
-				Child: createGamerSup(),
+				Name: "gamersup",
+				Child: createGamerSup(common.GbVar{
+					NodeName: app.NodeName,
+					Cfg:      app.Cfg,
+					DB:       app.DB,
+				}),
 			},
 		},
 	}, nil
@@ -39,21 +45,5 @@ func (app *GamerApp) Start(process gen.Process, args ...etf.Term) {
 }
 
 func (app *GamerApp) initApp() {
-	app.setGbConfig()
-	app.setGbDb()
-}
-
-func (app *GamerApp) setGbConfig() {
-	app.Cfg = config.Cfg
-
-}
-
-func (app *GamerApp) setGbDb() {
-	db, err := db.NewDBClient(app.Cfg.SSDB.Host, app.Cfg.SSDB.Port)
-	if err != nil {
-		log.Logger.Errorf("%+v", err)
-	}
-	log.Logger.Info("connect ssdb successful")
-	app.DB = db
 
 }

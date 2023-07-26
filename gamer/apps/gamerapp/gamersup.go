@@ -2,16 +2,22 @@ package gamerapp
 
 import (
 	"gamer/apps/gamerapp/player"
+	"gamer/common"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 )
 
-func createGamerSup() gen.SupervisorBehavior {
-	return &GamerSup{}
+func createGamerSup(gbVar common.GbVar) gen.SupervisorBehavior {
+	return &GamerSup{GbVar: common.GbVar{
+		NodeName: gbVar.NodeName,
+		Cfg:      gbVar.Cfg,
+		DB:       gbVar.DB,
+	}}
 }
 
 type GamerSup struct {
 	gen.Supervisor
+	common.GbVar
 }
 
 func (sup *GamerSup) Init(args ...etf.Term) (gen.SupervisorSpec, error) {
@@ -23,8 +29,12 @@ func (sup *GamerSup) Init(args ...etf.Term) (gen.SupervisorSpec, error) {
 				Child: createGamerActor(),
 			},
 			gen.SupervisorChildSpec{
-				Name:  "playersup",
-				Child: player.CreatePlayerSup(),
+				Name: "playersup",
+				Child: player.CreatePlayerSup(common.GbVar{
+					NodeName: sup.NodeName,
+					Cfg:      sup.Cfg,
+					DB:       sup.DB,
+				}),
 			},
 		},
 		Strategy: gen.SupervisorStrategy{

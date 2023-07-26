@@ -1,8 +1,8 @@
 package common
 
 import (
-	"gamer/apps/gamerapp/db"
-	"gamer/config"
+	"wsgate/apps/wsgateapp/db"
+	"wsgate/config"
 )
 
 type GbVar struct {
