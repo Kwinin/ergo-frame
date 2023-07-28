@@ -2,12 +2,14 @@ package wsgateapp
 
 import (
 	"crypto/tls"
+	"encoding/json"
 	"fmt"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/lib"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"wsgate/apps/wsgateapp/state"
 	"wsgate/common"
 	"wsgate/config"
 	"wsgate/log"
@@ -24,6 +26,7 @@ func createWebActor(gbVar common.GbVar) gen.ServerBehavior {
 type webServer struct {
 	gen.Web
 	common.GbVar
+	process *gen.WebProcess
 }
 
 func (web *webServer) InitWeb(process *gen.WebProcess, args ...etf.Term) (gen.WebOptions, error) {
@@ -44,6 +47,8 @@ func (web *webServer) InitWeb(process *gen.WebProcess, args ...etf.Term) (gen.We
 	}
 
 	mux := http.NewServeMux()
+
+	web.process = process
 
 	webRoot := process.StartWebHandler(&rootHandler{}, gen.WebHandlerOptions{})
 	mux.Handle("/", webRoot)
@@ -68,7 +73,6 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 		return
 	}
 	defer conn.Close()
-
 	for {
 		// Read message from the client
 		_, message, err := conn.ReadMessage()
@@ -79,7 +83,9 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 
 		// Print the received message
 		log.Logger.Infof("Received message: %s\n", message)
-		web.DB.Set("kwinin", string(message))
+
+		web.login(message)
+
 		// Send a response back to the client
 		response := "This is the server response."
 		err = conn.WriteMessage(websocket.TextMessage, []byte(response))
@@ -88,4 +94,34 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 			break
 		}
 	}
+}
+
+type Message struct {
+	Account  string `json:"account"`
+	Password string `json:"password"`
+	Data     string `json:"data"`
+}
+
+func (web *webServer) login(message []byte) {
+	msg := &Message{}
+	if err := json.Unmarshal(message, msg); err != nil {
+		log.Logger.Error("消息格式错误")
+	}
+
+	opts := gen.RemoteSpawnOptions{
+		Name: "player_remote",
+	}
+
+	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, 4, 6, 8)
+	if err != nil {
+		log.Logger.Error(err)
+	}
+	log.Logger.Infof("OK selfName: %s, selfId %s, returnId %d,%s", web.process.Name(), web.process.Self(), gotPid.ID, gotPid.Node)
+	log.Logger.Infof("msg %+v", msg)
+	state := state.NewStateModel()
+	state.Pid = gotPid
+	state.PlayerId = msg.Account
+	state.Status = 1
+	state.AddState(web.DB)
+	//web.DB.Set("kwinin", string(message))
 }

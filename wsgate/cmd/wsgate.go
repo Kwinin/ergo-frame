@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"github.com/ergo-services/ergo"
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
@@ -83,17 +82,17 @@ func main() {
 
 	WsGateNode.ProvideRemoteSpawn("wsgate_remote", &wsgateapp.WsGateActor{})
 
-	opts := gen.RemoteSpawnOptions{
-		Name: "player_remote",
-	}
-
-	process, _ := WsGateNode.Spawn("gs1", gen.ProcessOptions{}, &wsgateapp.WsGateActor{}, nil)
-
-	gotPid, err := process.RemoteSpawn(OptionGamerNodeName, "player_remote", opts, 4, 6, 8)
-	if err != nil {
-		fmt.Println(134, err)
-	}
-	log.Logger.Info("OK ", process.Name(), process.Self(), gotPid)
+	//opts := gen.RemoteSpawnOptions{
+	//	Name: "player_remote",
+	//}
+	//
+	//process, _ := WsGateNode.Spawn("gs1", gen.ProcessOptions{}, &wsgateapp.WsGateActor{}, nil)
+	//
+	//gotPid, err := process.RemoteSpawn(OptionGamerNodeName, "player_remote", opts, 4, 6, 8)
+	//if err != nil {
+	//	log.Logger.Error(err)
+	//}
+	//log.Logger.Infof("OK selfName: %s, selfId %s, returnId %d,%s", process.Name(), process.Self(), gotPid.ID, gotPid.Node)
 
 	//fmt.Println(3434, config.Cfg.Tcp.Host)
 	//hostPort := net.JoinHostPort(config.Cfg.Tcp.Host, strconv.Itoa(config.Cfg.Tcp.Port))
