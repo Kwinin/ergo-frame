@@ -109,19 +109,30 @@ func (web *webServer) login(message []byte) {
 	}
 
 	opts := gen.RemoteSpawnOptions{
-		Name: "player_remote",
+		Name: fmt.Sprintf("player_remote_%s", msg.Account),
 	}
 
-	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, 4, 6, 8)
+	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, msg.Account, msg.Data)
 	if err != nil {
+		fmt.Println(222)
 		log.Logger.Error(err)
 	}
 	log.Logger.Infof("OK selfName: %s, selfId %s, returnId %d,%s", web.process.Name(), web.process.Self(), gotPid.ID, gotPid.Node)
 	log.Logger.Infof("msg %+v", msg)
-	state := state.NewStateModel()
-	state.Pid = gotPid
-	state.PlayerId = msg.Account
-	state.Status = 1
-	state.AddState(web.DB)
+	sta := state.NewStateModel(msg.Account)
+	//store, err := sta.GetAllState(web.DB)
+	//if err != nil {
+	//	log.Logger.Error(err)
+	//}
+	//if store.PlayerId != msg.Account {
+	//	log.Logger.Infof("login failed")
+	//	return
+	//}
+	//log.Logger.Infof("kwinin %+v", store)
+	sta.Pid = gotPid.String()
+	sta.PlayerId = msg.Account
+	sta.Status = 1
+	sta.AddState(web.DB)
+
 	//web.DB.Set("kwinin", string(message))
 }

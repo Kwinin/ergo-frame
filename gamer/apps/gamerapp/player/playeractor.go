@@ -6,6 +6,7 @@ import (
 	"gamer/log"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
+	"strings"
 	"time"
 )
 
@@ -28,13 +29,21 @@ func (s *Actor) LaunchPid(PlayerId, ServerId int) {
 	log.Logger.Infof("Kwinin  LaunchPid %d, %d", PlayerId, ServerId)
 }
 
+type Message struct {
+	Account  string
+	Password string
+	Data     string
+}
+
 // Init invoked on a start this process.
 func (s *Actor) Init(process *gen.ServerProcess, args ...etf.Term) error {
-	log.Logger.Infof("Init Player process: %s with name %q and args %v \n", process.Self(), process.Name(), args)
-	if process.Name() == "player_remote" {
+	log.Logger.Infof("Init Player process: %s with name %q and args %+v \n", process.Self(), process.Name(), args)
+	if strings.Contains(process.Name(), "player_remote") {
 		role := lib.RoleLib{}
 		OnLogin()
-		role.LaunchRolePid(process, lib.RoleTag{Tag: "player", RoleId: 3434}, &Server{GbVar: common.GbVar{
+
+		log.Logger.Infof("-------e343 %+v", args[0].(string))
+		role.LaunchRolePid(process, lib.RoleTag{Tag: "player", RoleId: args[0].(string)}, &Server{GbVar: common.GbVar{
 			NodeName: s.NodeName,
 			Cfg:      s.Cfg,
 			DB:       s.DB}}, 222, 343)

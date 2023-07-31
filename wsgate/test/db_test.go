@@ -233,3 +233,58 @@ func TestJson(t *testing.T) {
 	fmt.Printf("34343, %+v", storedPerson)
 
 }
+
+func TestFixJson(t *testing.T) {
+
+	client, err := db.NewDBClient("127.0.0.1", 8888)
+	if err != nil {
+		t.Fatalf("无法连接到SSDB数据库：%v", err)
+	}
+	defer client.Close()
+
+	type UserData struct {
+		Name     string `json:"name"`
+		Age      int    `json:"age"`
+		Email    string `json:"email"`
+		IsMember bool   `json:"is_member"`
+	}
+
+	// 假设有一个复杂数据类型（UserData 结构体）需要存储
+	dataToStore := UserData{
+		Name:     "John Doe",
+		Age:      30,
+		Email:    "john@example.com",
+		IsMember: true,
+	}
+
+	// 1. JSON 序列化
+	jsonData, err := json.Marshal(dataToStore)
+	if err != nil {
+		fmt.Println("JSON serialization error:", err)
+		return
+	}
+
+	keyToStore := "user_data"
+	err = client.Set(keyToStore, string(jsonData))
+	if err != nil {
+		fmt.Println("SSDB set error:", err)
+		return
+	}
+
+	// 3. 反序列化
+	storedJSONData, err := client.Get(keyToStore)
+	if err != nil {
+		fmt.Println("SSDB get error:", err)
+		return
+	}
+
+	var storedData UserData
+	err = json.Unmarshal([]byte(storedJSONData), &storedData)
+	if err != nil {
+		fmt.Println("JSON deserialization error:", err)
+		return
+	}
+
+	// 现在 storedData 就是原始的复杂数据类型（UserData 结构体）了
+	fmt.Printf("%+v\n", storedData)
+}
