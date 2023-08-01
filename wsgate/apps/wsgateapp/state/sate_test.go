@@ -12,7 +12,8 @@ func TestGetAllState(t *testing.T) {
 		t.Fatalf("无法连接到SSDB数据库：%v", err)
 	}
 	defer client.Close()
-	store, err := GetAllState(client)
+	sta := NewStateModel("4324")
+	store, err := sta.GetAllState(client)
 	if err != nil {
 		fmt.Errorf("err: %s", err)
 	}
@@ -25,7 +26,7 @@ func TestStateModel_AddState(t *testing.T) {
 		t.Fatalf("无法连接到SSDB数据库：%v", err)
 	}
 	defer client.Close()
-	sta := NewStateModel()
+	sta := NewStateModel("3434")
 	sta.Pid = "3434"
 	sta.PlayerId = "111"
 	sta.Status = 1

@@ -97,7 +97,7 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 }
 
 type Message struct {
-	Account  string `json:"account"`
+	Account  int64  `json:"account"`
 	Password string `json:"password"`
 	Data     string `json:"data"`
 }
@@ -109,7 +109,7 @@ func (web *webServer) login(message []byte) {
 	}
 
 	opts := gen.RemoteSpawnOptions{
-		Name: fmt.Sprintf("player_remote_%s", msg.Account),
+		Name: fmt.Sprintf("player_remote_%d", msg.Account),
 	}
 
 	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, msg.Account, msg.Data)

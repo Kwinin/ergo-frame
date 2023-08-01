@@ -1,6 +1,7 @@
 package player
 
 import (
+	"fmt"
 	"gamer/apps/gamerapp/lib"
 	"gamer/common"
 	"gamer/log"
@@ -29,12 +30,6 @@ func (s *Actor) LaunchPid(PlayerId, ServerId int) {
 	log.Logger.Infof("Kwinin  LaunchPid %d, %d", PlayerId, ServerId)
 }
 
-type Message struct {
-	Account  string
-	Password string
-	Data     string
-}
-
 // Init invoked on a start this process.
 func (s *Actor) Init(process *gen.ServerProcess, args ...etf.Term) error {
 	log.Logger.Infof("Init Player process: %s with name %q and args %+v \n", process.Self(), process.Name(), args)
@@ -42,8 +37,38 @@ func (s *Actor) Init(process *gen.ServerProcess, args ...etf.Term) error {
 		role := lib.RoleLib{}
 		OnLogin()
 
-		log.Logger.Infof("-------e343 %+v", args[0].(string))
-		role.LaunchRolePid(process, lib.RoleTag{Tag: "player", RoleId: args[0].(string)}, &Server{GbVar: common.GbVar{
+		for _, arg := range args {
+			switch v := arg.(type) {
+			case string:
+				fmt.Printf("类型: %T, 值: %v\n", v, v)
+			case int:
+				fmt.Printf("类型: %T, 值: %v\n", v, v)
+			case int32:
+				fmt.Printf("类型: %T, 值: %v\n", v, v)
+			case int16:
+				fmt.Printf("类型: %T, 值: %v\n", v, v)
+			case int8:
+				fmt.Printf("类型: %T, 值: %v\n", v, v)
+			case int64:
+				fmt.Printf("类型: %T, 值: %v\n", v, v)
+			case uint8:
+				fmt.Printf("类型: %T, 值: %v\n", v, v)
+			case uint16:
+				fmt.Printf("类型: %T, 值: %v\n", v, v)
+			case uint32:
+				fmt.Printf("类型: %T, 值: %v\n", v, v)
+			case uint64:
+				fmt.Printf("类型: %T, 值: %v\n", v, v)
+			case float64:
+				fmt.Printf("类型: %T, 值: %v\n", v, v)
+			case bool:
+				fmt.Printf("类型: %T, 值: %v\n", v, v)
+			default:
+				fmt.Println("未知类型")
+			}
+		}
+
+		role.LaunchRolePid(process, lib.RoleTag{Tag: "player", RoleId: args[0].(int64)}, &Server{GbVar: common.GbVar{
 			NodeName: s.NodeName,
 			Cfg:      s.Cfg,
 			DB:       s.DB}}, 222, 343)
