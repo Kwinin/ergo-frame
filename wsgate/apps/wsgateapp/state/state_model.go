@@ -8,22 +8,22 @@ import (
 
 type StateModel struct {
 	Pid      string
-	PlayerId int64
+	PlayerId int
 	Status   int
 }
 
-func newStateModel(playerId int64) *StateModel {
+func newStateModel(playerId int) *StateModel {
 	um := new(StateModel)
 	um.PlayerId = playerId
 	return um
 }
 
-func NewStateModel(playerId int64) *StateModel {
+func NewStateModel(playerId int) *StateModel {
 	return newStateModel(playerId)
 }
 
 func (state *StateModel) TableName() string {
-	return fmt.Sprintf("state_model:%s", state.PlayerId)
+	return fmt.Sprintf("state_model:%d", state.PlayerId)
 }
 
 func (state *StateModel) AddState(db *db.DBClient) error {
@@ -37,7 +37,7 @@ func (state *StateModel) GetAllState(db *db.DBClient) (*StateModel, error) {
 		return nil, err
 	}
 
-	state.PlayerId = data["PlayerId"].Int64()
+	state.PlayerId = data["PlayerId"].Int()
 	state.Status = data["Status"].Int()
 	state.Pid = data["Pid"].String()
 

@@ -11,6 +11,13 @@ import (
 	"time"
 )
 
+type Message struct {
+	Account  int    `json:"account"`
+	Password string `json:"password"`
+	Data     string `json:"data"`
+	Code     int    `json:"code"`
+}
+
 func createPlayerActor(gbVar common.GbVar) gen.ServerBehavior {
 	return &Actor{
 		GbVar: common.GbVar{
@@ -37,41 +44,21 @@ func (s *Actor) Init(process *gen.ServerProcess, args ...etf.Term) error {
 		role := lib.RoleLib{}
 		OnLogin()
 
-		for _, arg := range args {
-			switch v := arg.(type) {
-			case string:
-				fmt.Printf("类型: %T, 值: %v\n", v, v)
-			case int:
-				fmt.Printf("类型: %T, 值: %v\n", v, v)
-			case int32:
-				fmt.Printf("类型: %T, 值: %v\n", v, v)
-			case int16:
-				fmt.Printf("类型: %T, 值: %v\n", v, v)
-			case int8:
-				fmt.Printf("类型: %T, 值: %v\n", v, v)
-			case int64:
-				fmt.Printf("类型: %T, 值: %v\n", v, v)
-			case uint8:
-				fmt.Printf("类型: %T, 值: %v\n", v, v)
-			case uint16:
-				fmt.Printf("类型: %T, 值: %v\n", v, v)
-			case uint32:
-				fmt.Printf("类型: %T, 值: %v\n", v, v)
-			case uint64:
-				fmt.Printf("类型: %T, 值: %v\n", v, v)
-			case float64:
-				fmt.Printf("类型: %T, 值: %v\n", v, v)
-			case bool:
-				fmt.Printf("类型: %T, 值: %v\n", v, v)
-			default:
-				fmt.Println("未知类型")
-			}
+		msg := &Message{}
+		if err := etf.TermIntoStruct(args[0], msg); err != nil {
+			log.Logger.Errorf("TermIntoStruct: %+v \n", err)
 		}
+		log.Logger.Infof("arg :  %+v, %+v \n", args[0], msg)
 
-		role.LaunchRolePid(process, lib.RoleTag{Tag: "player", RoleId: args[0].(int64)}, &Server{GbVar: common.GbVar{
+		role.LaunchRolePid(process, lib.RoleTag{Tag: "player", RoleId: msg.Account}, &Server{GbVar: common.GbVar{
 			NodeName: s.NodeName,
 			Cfg:      s.Cfg,
 			DB:       s.DB}}, 222, 343)
+
+		//err := process.Exit(fmt.Sprintf("%s 已经停止", process.Name()))
+		//if err != nil {
+		//	return err
+		//}
 	}
 	return nil
 }
@@ -96,8 +83,21 @@ func (s *Actor) HandleCast(process *gen.ServerProcess, message etf.Term) gen.Ser
 
 // HandleCall invoked if this process got sync request using ServerProcess.Call(...)
 func (s *Actor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
-	log.Logger.Infof("HandleCall: %#v \n", message)
-	return nil, gen.ServerStatusOK
+	msg := &Message{}
+	if err := etf.TermIntoStruct(message, msg); err != nil {
+		log.Logger.Errorf("TermIntoStruct: %#v \n", err)
+	}
+
+	switch msg.Code {
+	case 1:
+		processName := process.Name()
+		process.Exit(fmt.Sprintf("%s 已经停止", processName))
+		return processName, gen.ServerStatusOK
+	}
+
+	log.Logger.Infof("HandleCall:  %+v, %+v \n", message, msg.Data)
+
+	return "kwinin", gen.ServerStatusOK
 }
 
 // HandleDirect invoked on a direct request made with Process.Direct(...)

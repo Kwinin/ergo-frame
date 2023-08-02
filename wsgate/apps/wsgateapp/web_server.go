@@ -84,7 +84,28 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 		// Print the received message
 		log.Logger.Infof("Received message: %s\n", message)
 
-		web.login(message)
+		msg := &Message{}
+		if err := json.Unmarshal(message, msg); err != nil {
+			log.Logger.Error("消息格式错误")
+		}
+
+		switch msg.Code {
+		case 0:
+			web.login(msg)
+		case 1:
+			sta := state.NewStateModel(msg.Account)
+			store, err := sta.GetAllState(web.DB)
+			if err != nil {
+				log.Logger.Error(err)
+			}
+			name := fmt.Sprintf("player_remote_%d", store.PlayerId)
+
+			res, err := web.process.Call(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, msg)
+			if err != nil {
+				log.Logger.Infof("callerr %+v", err)
+			}
+			log.Logger.Infof("callRes %+v", res)
+		}
 
 		// Send a response back to the client
 		response := "This is the server response."
@@ -97,22 +118,19 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 }
 
 type Message struct {
-	Account  int64  `json:"account"`
+	Account  int    `json:"account"`
 	Password string `json:"password"`
 	Data     string `json:"data"`
+	Code     int    `json:"code"`
 }
 
-func (web *webServer) login(message []byte) {
-	msg := &Message{}
-	if err := json.Unmarshal(message, msg); err != nil {
-		log.Logger.Error("消息格式错误")
-	}
+func (web *webServer) login(msg *Message) {
 
 	opts := gen.RemoteSpawnOptions{
 		Name: fmt.Sprintf("player_remote_%d", msg.Account),
 	}
 
-	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, msg.Account, msg.Data)
+	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, msg)
 	if err != nil {
 		fmt.Println(222)
 		log.Logger.Error(err)
@@ -124,15 +142,13 @@ func (web *webServer) login(message []byte) {
 	//if err != nil {
 	//	log.Logger.Error(err)
 	//}
+	//fmt.Printf("4324 %+v \n", store)
 	//if store.PlayerId != msg.Account {
 	//	log.Logger.Infof("login failed")
 	//	return
 	//}
-	//log.Logger.Infof("kwinin %+v", store)
 	sta.Pid = gotPid.String()
 	sta.PlayerId = msg.Account
 	sta.Status = 1
 	sta.AddState(web.DB)
-
-	//web.DB.Set("kwinin", string(message))
 }

@@ -288,3 +288,14 @@ func TestFixJson(t *testing.T) {
 	// 现在 storedData 就是原始的复杂数据类型（UserData 结构体）了
 	fmt.Printf("%+v\n", storedData)
 }
+
+func TestIds(t *testing.T) {
+	numSegments := 4
+
+	userIDs := []int{123, 456, 789, 101, 202, 303}
+
+	for _, userID := range userIDs {
+		segment := userID % numSegments
+		fmt.Printf("User %d is in segment %d\n", userID, segment)
+	}
+}

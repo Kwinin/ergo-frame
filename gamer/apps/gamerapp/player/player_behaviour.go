@@ -140,3 +140,8 @@ func (gd *Custom) HandleInfo(process *gen.ServerProcess, message etf.Term) gen.S
 	custom := process.State.(*CustomProcess)
 	return process.Behavior().(CustomBehavior).HandleCustomInfo(custom, message)
 }
+
+// Terminate invoked on a termination process. ServerProcess.State is not locked during this callback.
+func (gd *Custom) Terminate(process *gen.ServerProcess, reason string) {
+	log.Logger.Infof("Terminated: %s with reason %s", process.Self(), reason)
+}
