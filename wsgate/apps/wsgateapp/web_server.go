@@ -89,10 +89,10 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 			log.Logger.Error("消息格式错误")
 		}
 
-		switch msg.Code {
-		case 0:
+		switch true {
+		case msg.Code == 0:
 			web.login(msg)
-		case 1:
+		case msg.Code != 0:
 			sta := state.NewStateModel(msg.Account)
 			store, err := sta.GetAllState(web.DB)
 			if err != nil {

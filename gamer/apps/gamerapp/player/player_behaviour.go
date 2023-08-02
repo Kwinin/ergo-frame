@@ -112,11 +112,13 @@ func (d *Custom) Init(process *gen.ServerProcess, args ...etf.Term) error {
 }
 
 func (gd *Custom) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
+	log.Logger.Infof("p2 server Custom HandleCall %v", message)
 	custom := process.State.(*CustomProcess)
 	return process.Behavior().(CustomBehavior).HandleCustomCall(custom, from, message)
 }
 
 func (gd *Custom) HandleDirect(process *gen.ServerProcess, ref etf.Ref, message interface{}) (interface{}, gen.DirectStatus) {
+	log.Logger.Infof("p2 server Custom HandleDirect%v", message)
 	custom := process.State.(*CustomProcess)
 	switch message.(type) {
 	case messageGetStat:

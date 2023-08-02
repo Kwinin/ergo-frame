@@ -54,11 +54,6 @@ func (s *Actor) Init(process *gen.ServerProcess, args ...etf.Term) error {
 			NodeName: s.NodeName,
 			Cfg:      s.Cfg,
 			DB:       s.DB}}, 222, 343)
-
-		//err := process.Exit(fmt.Sprintf("%s 已经停止", process.Name()))
-		//if err != nil {
-		//	return err
-		//}
 	}
 	return nil
 }
@@ -81,18 +76,41 @@ func (s *Actor) HandleCast(process *gen.ServerProcess, message etf.Term) gen.Ser
 	return gen.ServerStatusOK
 }
 
+type makeCall struct {
+	to      interface{}
+	message interface{}
+}
+
 // HandleCall invoked if this process got sync request using ServerProcess.Call(...)
 func (s *Actor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
 	msg := &Message{}
 	if err := etf.TermIntoStruct(message, msg); err != nil {
 		log.Logger.Errorf("TermIntoStruct: %#v \n", err)
 	}
-
+	fmt.Println(msg, msg.Code)
 	switch msg.Code {
 	case 1:
 		processName := process.Name()
 		process.Exit(fmt.Sprintf("%s 已经停止", processName))
 		return processName, gen.ServerStatusOK
+	case 2:
+		name := fmt.Sprintf("%s_%d", "player", msg.Account)
+
+		p2 := process.ProcessByName(name)
+		fmt.Printf("p2= %v , p1= %v \n", p2.Self(), process.Self())
+		call := makeCall{
+			to:      p2,
+			message: msg.Data,
+		}
+
+		//_, err := process.Call(p2.Self(), msg.Data)
+		//if err != nil {
+		//	log.Logger.Errorf("p2 Direct %v", err)
+		//}
+		_, err := p2.Direct(call)
+		if err != nil {
+			log.Logger.Errorf("p2 Direct %v", err)
+		}
 	}
 
 	log.Logger.Infof("HandleCall:  %+v, %+v \n", message, msg.Data)

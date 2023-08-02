@@ -26,7 +26,6 @@ func (md *Server) HandleHello(process *CustomProcess) CustomStatus {
 }
 
 func (md *Server) HandleCustomDirect(process *CustomProcess, message interface{}) (interface{}, error) {
-
 	log.Logger.Info("Say hi to increase counter twice")
 	process.Hi()
 	return nil, nil
