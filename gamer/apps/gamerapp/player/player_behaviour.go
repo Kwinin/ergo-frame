@@ -118,7 +118,6 @@ func (gd *Custom) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, me
 }
 
 func (gd *Custom) HandleDirect(process *gen.ServerProcess, ref etf.Ref, message interface{}) (interface{}, gen.DirectStatus) {
-	log.Logger.Infof("p2 server Custom HandleDirect%v", message)
 	custom := process.State.(*CustomProcess)
 	switch message.(type) {
 	case messageGetStat:

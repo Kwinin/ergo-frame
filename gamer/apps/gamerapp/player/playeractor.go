@@ -50,10 +50,12 @@ func (s *Actor) Init(process *gen.ServerProcess, args ...etf.Term) error {
 		}
 		log.Logger.Infof("arg :  %+v, %+v \n", args[0], msg)
 
-		role.LaunchRolePid(process, lib.RoleTag{Tag: "player", RoleId: msg.Account}, &Server{GbVar: common.GbVar{
+		server := &Server{GbVar: common.GbVar{
 			NodeName: s.NodeName,
 			Cfg:      s.Cfg,
-			DB:       s.DB}}, 222, 343)
+			DB:       s.DB}}
+		role.LaunchRolePid(process, lib.RoleTag{Tag: "player", RoleId: msg.Account}, server, 222, 343)
+
 	}
 	return nil
 }
@@ -98,19 +100,30 @@ func (s *Actor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, mess
 
 		p2 := process.ProcessByName(name)
 		fmt.Printf("p2= %v , p1= %v \n", p2.Self(), process.Self())
-		call := makeCall{
-			to:      p2,
-			message: msg.Data,
-		}
 
 		//_, err := process.Call(p2.Self(), msg.Data)
 		//if err != nil {
 		//	log.Logger.Errorf("p2 Direct %v", err)
 		//}
-		_, err := p2.Direct(call)
+
+		//call := makeCall{
+		//	to:      p2,
+		//	message: msg.Data,
+		//}
+		//_, err := p2.Direct(call)
+		//if err != nil {
+		//	log.Logger.Errorf("p2 Direct %v", err)
+		//}
+
+		server := &Server{GbVar: common.GbVar{
+			NodeName: s.NodeName,
+			Cfg:      s.Cfg,
+			DB:       s.DB}}
+		err := server.Hello(p2)
 		if err != nil {
-			log.Logger.Errorf("p2 Direct %v", err)
+			log.Logger.Errorf("p2 Hello %v", err)
 		}
+
 	}
 
 	log.Logger.Infof("HandleCall:  %+v, %+v \n", message, msg.Data)

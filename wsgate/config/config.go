@@ -13,7 +13,7 @@ var Cfg Conf
 
 func InitConfig(configPath string) error {
 	Config = viper.New()
-	Config.SetConfigType("yaml")
+	Config.SetConfigType("json")
 	Config.AddConfigPath(configPath)
 	Config.SetConfigName("config") // 设置配置文件名（例如：config.yaml，config.json，config.toml 等）
 
