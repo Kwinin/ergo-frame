@@ -1,45 +1,37 @@
-package main
+package cmd
 
 import (
 	"flag"
-	"fmt"
 	"github.com/ergo-services/ergo"
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
+	"github.com/spf13/cobra"
 	"master/apps/masterapp"
 	"master/config"
 	"master/log"
 )
 
-var (
-	OptionGamerNodeName  string
-	OptionWsGateNodeName string
-	OptionMasterNodeName string
-	OptionNodeCookie     string
-)
-
-func init() {
-	// generate random value for cookie
-	//buff := make([]byte, 12)
-	//rand.Read(buff)
-	//randomCookie := hex.EncodeToString(buff)
-
-	flag.StringVar(&OptionGamerNodeName, "gamer_name", "Gamer@localhost", "node gamer_name")
-	flag.StringVar(&OptionWsGateNodeName, "wsgate_name", "WsGate@localhost", "node wsgate_name")
-	flag.StringVar(&OptionMasterNodeName, "master_name", "Master@localhost", "node master_name")
-	flag.StringVar(&OptionNodeCookie, "cookie", "cookie123", "a secret cookie for interaction within the cluster")
-
+var startCmd = &cobra.Command{
+	Use:   "start",
+	Short: "启动服务",
+	Long: `	
+	ERGO-FRAME
+==========================================
+	| START |
+==========================================
+	-t ---使用文档
+	`,
+	Run: func(cmd *cobra.Command, args []string) {
+		start()
+	},
 }
 
-func main() {
-	log.InitLogger()
+func init() {
+	rootCmd.AddCommand(startCmd)
+	startCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
 
-	configPath := "./conf"
-	err := config.InitConfig(configPath)
-	if err != nil {
-		log.Logger.Error(err)
-	}
-
+func start() {
 	var options node.Options
 
 	flag.Parse()
@@ -53,22 +45,23 @@ func main() {
 	options.Proxy.Flags.EnableRemoteSpawn = false
 
 	// Starting node
-	MasterNode, err := ergo.StartNode(OptionMasterNodeName, OptionNodeCookie, options)
+	MasterNode, err := ergo.StartNode(config.ServerCfg.Node.Addr, config.ServerCfg.Cookie, options)
 	if err != nil {
 		panic(err)
 	}
 	log.Logger.Infof("Node %q is started\n", MasterNode.Name())
 
+	// todo: proxy net
 	route := node.ProxyRoute{
-		Name:  OptionGamerNodeName,
-		Proxy: OptionWsGateNodeName,
+		Name:  config.Cfg.NodeList.Gamer[0].Addr,
+		Proxy: config.Cfg.NodeList.WsGate[0].Addr,
 	}
 
 	MasterNode.AddProxyRoute(route)
 
-	if err := MasterNode.Connect(OptionWsGateNodeName); err != nil {
-		fmt.Println(111, err)
-	}
+	//if err := MasterNode.Connect(config.Cfg.Nodes.WsGate[0].Addr); err != nil {
+	//	fmt.Println(111, err)
+	//}
 
 	//opts := gen.RemoteSpawnOptions{
 	//	Name: "gamer_remote",

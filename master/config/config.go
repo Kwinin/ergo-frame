@@ -3,16 +3,14 @@ package config
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"master/log"
 )
 
-var logger = log.InfLog.GetLogger(log.Logrus{})
-
 var Config *viper.Viper
+var Cfg Conf
 
 func InitConfig(configPath string) error {
 	Config = viper.New()
-	Config.SetConfigType("yaml")
+	Config.SetConfigType("json")
 	Config.AddConfigPath(configPath)
 	Config.SetConfigName("config") // 设置配置文件名（例如：config.yaml，config.json，config.toml 等）
 
@@ -23,6 +21,15 @@ func InitConfig(configPath string) error {
 	}
 
 	Config.Unmarshal(&Cfg)
+
+	for _, v := range Cfg.NodeList.Master {
+		if v.Name == fmt.Sprintf("%s_%d", ServerCfg.ServerName, ServerCfg.ServerID) {
+			ServerCfg.Node = v
+		}
+	}
+	if ServerCfg.Node.Name == "" {
+		return fmt.Errorf("no set server current node")
+	}
 
 	return nil
 }

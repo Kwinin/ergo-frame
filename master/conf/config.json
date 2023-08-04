@@ -1,0 +1,29 @@
+{
+  "nodeList": {
+    "gamer": [
+      {"name": "gamer_1", "addr": "Gamer@localhost","sign": "dsXc4342", "ip": "127.0.0.1"},
+      {"name": "gamer_2", "addr": "node2Gamer@localhost","sign": "515dc4ASc", "ip": "127.0.0.1"}
+    ],
+    "wsgate": [
+      {"name": "wsgate_1", "addr": "WsGate@localhost","sign": "tyss4ASc", "ip": "127.0.0.1"},
+      {"name": "wsgate_2", "addr": "node2WsGate@localhost","sign": "d342xc4ASc", "ip": "127.0.0.1"}
+    ],
+    "master": [
+      {"name": "master_1", "addr": "Master@localhost","sign": "ds344ASc", "ip": "127.0.0.1"}
+    ]
+  },
+  "tcp": {
+    "host": "127.0.0.1",
+    "port": 4343,
+    "enable": false
+  },
+  "web": {
+    "host": "127.0.0.1",
+    "port": 8080,
+    "enable": false
+  },
+  "ssdb": {
+    "host": "127.0.0.1",
+    "port": 8888
+  }
+}
