@@ -8,8 +8,8 @@ import (
 	"master/log"
 )
 
-func CreateMasterApp() gen.ApplicationBehavior {
-	return &MasterApp{}
+func CreateMasterApp(cmd chan string) gen.ApplicationBehavior {
+	return &MasterApp{CmdChan: cmd}
 }
 
 type GbVar struct {
@@ -21,6 +21,7 @@ type GbVar struct {
 type MasterApp struct {
 	gen.Application
 	GbVar
+	CmdChan chan string
 }
 
 func (app *MasterApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
@@ -32,6 +33,9 @@ func (app *MasterApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
 			gen.ApplicationChildSpec{
 				Name:  "mastersup",
 				Child: createMasterSup(),
+				Args: []etf.Term{
+					app.CmdChan,
+				},
 			},
 		},
 	}, nil

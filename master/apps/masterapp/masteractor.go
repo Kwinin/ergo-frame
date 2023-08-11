@@ -3,6 +3,7 @@ package masterapp
 import (
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
+	"master/common"
 	"master/log"
 )
 
@@ -12,10 +13,12 @@ func createMasterActor() gen.ServerBehavior {
 
 type MasterActor struct {
 	gen.Server
+	CmdChan chan string
 }
 
 // Init invoked on a start this process.
 func (s *MasterActor) Init(process *gen.ServerProcess, args ...etf.Term) error {
+	s.CmdChan = args[0].(chan string)
 	log.Logger.Infof("Init process: %s with name %q and args %v \n", process.Self(), process.Name(), args)
 	//opts := gen.RemoteSpawnOptions{
 	//	Name: "remote",
@@ -49,7 +52,9 @@ func (s *MasterActor) HandleCast(process *gen.ServerProcess, message etf.Term) g
 
 // HandleCall invoked if this process got sync request using ServerProcess.Call(...)
 func (s *MasterActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
+	s.CmdChan <- string(common.Shutdown)
 	log.Logger.Infof("HandleCall: %#v \n", message)
+
 	return nil, gen.ServerStatusOK
 }
 

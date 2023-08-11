@@ -76,5 +76,6 @@ func main() {
 	GamerNode.ProvideRemoteSpawn("gamer_remote", &gamerapp.GamerActor{})
 	GamerNode.ProvideRemoteSpawn("player_remote", &player.Actor{GbVar: gbVar})
 
+	log.Logger.Info(GamerNode.Nodes())
 	GamerNode.Wait()
 }

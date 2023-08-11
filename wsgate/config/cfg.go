@@ -3,9 +3,9 @@ package config
 type Conf struct {
 	Tcp Tcp `json:"tcp" mapstructure:"tcp"`
 	Web
-	SSDB   SSDB `json:"ssdb" mapstructure:"ssdb"`
-	Nodes  Nodes
-	Cookie string `json:"cookie" mapstructure:"cookie"`
+	SSDB     SSDB       `json:"ssdb" mapstructure:"ssdb"`
+	NodeList []NodeConf `json:"nodeList" mapstructure:"nodeList"`
+	Cookie   string     `json:"cookie" mapstructure:"cookie"`
 }
 
 type Tcp struct {
@@ -23,12 +23,6 @@ type Web struct {
 type SSDB struct {
 	Host string `mapstructure:"host"`
 	Port int    `mapstructure:"port"`
-}
-
-type Nodes struct {
-	Gamer  []NodeConf `mapstructure:"gamer"`
-	WsGate []NodeConf `mapstructure:"wsgate"`
-	Master []NodeConf `mapstructure:"master"`
 }
 
 type NodeConf struct {

@@ -116,5 +116,6 @@ func main() {
 	//	time.Sleep(time.Second)
 	//}
 
+	log.Logger.Info(WsGateNode.Nodes())
 	WsGateNode.Wait()
 }

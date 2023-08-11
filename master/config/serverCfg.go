@@ -1,8 +1,10 @@
 package config
 
+import "master/common"
+
 // ServerConfig  server cfg
 type ServerConfig struct {
-	ServerName string
+	ServerName common.GenServerName
 	ServerID   int32
 	Version    string
 	Node       NodeConf
