@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"master/common"
 	"master/config"
 	"master/log"
 
@@ -18,7 +17,10 @@ var (
 	debugGenServer *DebugGenServer
 )
 
-func call(cmd ...string) (etf.Term, error) {
+func call(serverName string, serverId int32, cmd ...string) (etf.Term, error) {
+	if config.ServerCfg.ServerName != serverName {
+		genServerName = fmt.Sprintf("%s_%d_actor", serverName, serverId)
+	}
 	log.Logger.Infof("call node -> %v,%v, cmd: %v", genServerName, gateNodeName, cmd)
 	if len(cmd) == 1 {
 		return debugGenServer.process.Call(gen.ProcessID{Name: genServerName, Node: gateNodeName}, etf.Atom(cmd[0]))
@@ -35,9 +37,9 @@ func send(cmd ...string) error {
 	}
 }
 
-func ping(serverName common.GenServerName, serverId int32) (bool, string) {
+func ping(serverName string, serverId int32) (bool, string) {
 	startDebugGen(serverName, serverId)
-	server, err := call("ping")
+	server, err := call(serverName, serverId, "ping")
 	if err != nil {
 		fmt.Println(err)
 		return false, ""
@@ -46,7 +48,7 @@ func ping(serverName common.GenServerName, serverId int32) (bool, string) {
 
 }
 
-func startDebugGen(serverName common.GenServerName, serverId int32) (node.Node, gen.Process) {
+func startDebugGen(serverName string, serverId int32) (node.Node, gen.Process) {
 	gateNode, err := config.GetNodeInfo(serverName, serverId)
 	gateNodeName = gateNode.Addr
 	if err != nil {

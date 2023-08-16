@@ -2,21 +2,25 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"master/common"
 	"master/config"
 	"master/log"
 	"strconv"
 )
 
 var stopCmd = &cobra.Command{
-	Use:   "stop",
+	Use:   "stop [serverName] [serverId]",
 	Short: "关闭服务",
-	Long:  `shut down game server`,
+	Long: `
+	ERGO-FRAME
+==========================================
+	| STOP |
+==========================================
+`,
 	Run: func(cmd *cobra.Command, args []string) {
 		var serverId int32
-		var serverName common.GenServerName
-		if len(args) == 3 {
-			serverName = common.GenServerName(args[0])
+		var serverName string
+		if len(args) == 2 {
+			serverName = args[0]
 			val, err := strconv.Atoi(args[1])
 			if err != nil {
 				log.Logger.Info("转换失败：", err)
@@ -29,7 +33,7 @@ var stopCmd = &cobra.Command{
 		}
 		startDebugGen(serverName, serverId)
 
-		if info, err := call("shutdown"); err == nil {
+		if info, err := call(serverName, serverId, "shutdown"); err == nil {
 			log.Logger.Infof("[%v] shutdown  \n", info)
 		} else {
 			log.Logger.Infof("err: %v", err)

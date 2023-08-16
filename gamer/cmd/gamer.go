@@ -36,7 +36,7 @@ func main() {
 		log.Logger.Error(err)
 	}
 
-	db, err := db.NewDBClient(config.Cfg.SSDB.Host, config.Cfg.SSDB.Port)
+	db, err := db.NewDBClient(config.ServerCfg.SSDB.Host, config.ServerCfg.SSDB.Port)
 	if err != nil {
 		log.Logger.Errorf("%+v", err)
 	}

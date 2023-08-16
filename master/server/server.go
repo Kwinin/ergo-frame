@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"master/common"
 	"master/config"
+	"master/db"
 	"master/log"
 	"master/nodes"
 	"os"
@@ -49,6 +50,13 @@ func StartServer() {
 	}
 	MainServerInfo = &mainServer{command: make(chan string)}
 	MainServerInfo.Start()
+
+	db, err := db.InfDb.NewDBClient(&db.SctSSdb{})
+	if err != nil {
+		log.Logger.Errorf("%+v", err)
+	}
+
+	defer db.Close()
 	defer CloseServer()
 	defer MainServerInfo.Close()
 	StartSuccess()

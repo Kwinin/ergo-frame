@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"github.com/spf13/viper"
-	"master/common"
 )
 
 var Config *viper.Viper
@@ -35,7 +34,7 @@ func InitConfig(configPath string) error {
 
 	return nil
 }
-func GetNodeInfo(serverName common.GenServerName, serverId int32) (nodeC *NodeConf, err error) {
+func GetNodeInfo(serverName string, serverId int32) (nodeC *NodeConf, err error) {
 	for _, v := range Cfg.NodeList {
 		if v.Name == fmt.Sprintf("%s_%d", serverName, serverId) {
 			nodeC = &v

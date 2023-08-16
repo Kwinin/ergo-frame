@@ -1,8 +1,10 @@
 package gamerapp
 
 import (
+	"fmt"
 	"gamer/apps/gamerapp/player"
 	"gamer/common"
+	"gamer/config"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 )
@@ -22,10 +24,10 @@ type GamerSup struct {
 
 func (sup *GamerSup) Init(args ...etf.Term) (gen.SupervisorSpec, error) {
 	spec := gen.SupervisorSpec{
-		Name: "gamersup",
+		Name: fmt.Sprintf("%s_%d_sup", config.ServerCfg.ServerName, config.ServerCfg.ServerID),
 		Children: []gen.SupervisorChildSpec{
 			gen.SupervisorChildSpec{
-				Name:  "gameractor",
+				Name:  fmt.Sprintf("%s_%d_actor", config.ServerCfg.ServerName, config.ServerCfg.ServerID),
 				Child: createGamerActor(),
 			},
 			gen.SupervisorChildSpec{

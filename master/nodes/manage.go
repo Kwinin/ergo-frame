@@ -2,7 +2,6 @@ package nodes
 
 import (
 	"github.com/ergo-services/ergo/node"
-	"master/common"
 	"master/config"
 	"master/log"
 	"sync"
@@ -23,7 +22,7 @@ func Start(command chan string) {
 	nodesMap.Store(serverNode.Name(), serverNode)
 }
 
-func GetNode(name common.GenServerName, serverId int32) node.Node {
+func GetNode(name string, serverId int32) node.Node {
 	nodeC, err := config.GetNodeInfo(name, serverId)
 	if err != nil {
 		log.Logger.Error("GetNode ", err)
