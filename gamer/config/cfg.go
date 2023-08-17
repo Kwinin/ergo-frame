@@ -1,6 +1,8 @@
 package config
 
 type Conf struct {
+	Node       NodeConf `json:"node" mapstructure:"node"`
+	MasterAddr string
 }
 
 type NodeConf struct {

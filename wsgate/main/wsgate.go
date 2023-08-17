@@ -12,42 +12,21 @@ import (
 	"wsgate/log"
 )
 
-var (
-	OptionGamerNodeName  string
-	OptionWsGateNodeName string
-	OptionMasterNodeName string
-	OptionNodeCookie     string
-)
-
-func init() {
-	// generate random value for cookie
-	//buff := make([]byte, 12)
-	//rand.Read(buff)
-	//randomCookie := hex.EncodeToString(buff)
-
-	flag.StringVar(&OptionGamerNodeName, "gamer_name", "Gamer@localhost", "node gamer_name")
-	flag.StringVar(&OptionWsGateNodeName, "wsgate_name", "WsGate@localhost", "node wsgate_name")
-	flag.StringVar(&OptionMasterNodeName, "master_name", "Master@localhost", "node master_name")
-	flag.StringVar(&OptionNodeCookie, "cookie", "cookie123", "a secret cookie for interaction within the cluster")
-
-}
-
 func main() {
 	log.InitLogger()
 
-	configPath := "./conf"
-	err := config.InitConfig(configPath)
+	err := config.InitConfig(config.ServerCfg.CfgPath)
 	if err != nil {
 		log.Logger.Error(err)
 	}
 
-	db, err := db.NewDBClient(config.Cfg.SSDB.Host, config.Cfg.SSDB.Port)
+	db, err := db.NewDBClient(config.ServerCfg.SSDB.Host, config.ServerCfg.SSDB.Port)
 	if err != nil {
 		log.Logger.Errorf("%+v", err)
 	}
 
 	gbVar := common.GbVar{
-		NodeName: OptionWsGateNodeName,
+		NodeName: config.ServerCfg.Node.Addr,
 		Cfg:      config.Cfg,
 		DB:       db,
 	}
@@ -74,7 +53,7 @@ func main() {
 	options.Proxy.Transit = true
 
 	// Starting node
-	WsGateNode, err := ergo.StartNode(OptionWsGateNodeName, OptionNodeCookie, options)
+	WsGateNode, err := ergo.StartNode(config.ServerCfg.Node.Addr, config.ServerCfg.Cookie, options)
 	if err != nil {
 		panic(err)
 	}

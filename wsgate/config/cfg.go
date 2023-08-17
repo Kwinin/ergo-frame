@@ -3,9 +3,7 @@ package config
 type Conf struct {
 	Tcp Tcp `json:"tcp" mapstructure:"tcp"`
 	Web
-	SSDB     SSDB       `json:"ssdb" mapstructure:"ssdb"`
-	NodeList []NodeConf `json:"nodeList" mapstructure:"nodeList"`
-	Cookie   string     `json:"cookie" mapstructure:"cookie"`
+	Node NodeConf `json:"node" mapstructure:"node"`
 }
 
 type Tcp struct {

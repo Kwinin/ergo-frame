@@ -13,25 +13,10 @@ import (
 	"github.com/ergo-services/ergo/node"
 )
 
-var (
-	OptionGamerNodeName  string
-	OptionWsGateNodeName string
-	OptionMasterNodeName string
-	OptionNodeCookie     string
-)
-
-func init() {
-	flag.StringVar(&OptionGamerNodeName, "gamer_name", "Gamer@localhost", "node gamer_name")
-	flag.StringVar(&OptionWsGateNodeName, "wsgate_name", "WsGate@localhost", "node wsgate_name")
-	flag.StringVar(&OptionMasterNodeName, "master_name", "Master@localhost", "node master_name")
-	flag.StringVar(&OptionNodeCookie, "cookie", "cookie123", "a secret cookie for interaction within the cluster")
-}
-
 func main() {
 	log.InitLogger()
 
-	configPath := "./conf"
-	err := config.InitConfig(configPath)
+	err := config.InitConfig(config.ServerCfg.CfgPath)
 	if err != nil {
 		log.Logger.Error(err)
 	}
@@ -42,7 +27,7 @@ func main() {
 	}
 
 	gbVar := common.GbVar{
-		NodeName: OptionGamerNodeName,
+		NodeName: config.ServerCfg.Node.Addr,
 		Cfg:      config.Cfg,
 		DB:       db,
 	}
@@ -67,7 +52,7 @@ func main() {
 	options.Proxy.Transit = true
 
 	// Starting node
-	GamerNode, err := ergo.StartNode(OptionGamerNodeName, OptionNodeCookie, options)
+	GamerNode, err := ergo.StartNode(config.ServerCfg.Node.Addr, config.ServerCfg.Cookie, options)
 	if err != nil {
 		panic(err)
 	}

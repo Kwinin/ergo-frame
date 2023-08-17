@@ -24,6 +24,15 @@ func InitConfig(configPath string) error {
 	}
 
 	Config.Unmarshal(&Cfg)
+
+	if Cfg.Node.Name == fmt.Sprintf("%s_%d", ServerCfg.ServerName, ServerCfg.ServerID) {
+		ServerCfg.Node = Cfg.Node
+	}
+
+	if ServerCfg.Node.Name == "" {
+		return fmt.Errorf("no set server current node")
+	}
+
 	// 启用自动热重载
 	Config.WatchConfig()
 	Config.OnConfigChange(func(e fsnotify.Event) {

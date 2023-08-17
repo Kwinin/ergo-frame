@@ -9,8 +9,7 @@ import (
 
 // ergo.Node 节点管理
 var (
-	nodesMap  sync.Map
-	remoteMap sync.Map //远程连接节点
+	nodesMap sync.Map
 )
 
 func Start(command chan string) {
