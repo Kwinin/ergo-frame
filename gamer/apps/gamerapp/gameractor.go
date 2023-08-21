@@ -1,6 +1,7 @@
 package gamerapp
 
 import (
+	"gamer/common"
 	"gamer/log"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
@@ -57,6 +58,14 @@ func (s *GamerActor) HandleCast(process *gen.ServerProcess, message etf.Term) ge
 // HandleCall invoked if this process got sync request using ServerProcess.Call(...)
 func (s *GamerActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
 	log.Logger.Infof("HandleCall: %#v \n", message)
+
+	msg := &common.TransMessage{}
+	if err := etf.TermIntoStruct(message, msg); err != nil {
+		log.Logger.Errorf("TermIntoStruct: %#v \n", err)
+	}
+
+	log.Logger.Infof("TransMessage, %+v", msg)
+
 	return nil, gen.ServerStatusOK
 }
 

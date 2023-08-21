@@ -5,6 +5,7 @@ import (
 	"gamer/apps/gamerapp"
 	"gamer/apps/gamerapp/db"
 	"gamer/apps/gamerapp/player"
+	"gamer/cmd"
 	"gamer/common"
 	"gamer/config"
 	"gamer/log"
@@ -62,5 +63,10 @@ func main() {
 	GamerNode.ProvideRemoteSpawn("player_remote", &player.Actor{GbVar: gbVar})
 
 	log.Logger.Info(GamerNode.Nodes())
+
+	_, _, Tg := cmd.NewSpawnTrans(GamerNode, "master_1_actor", "Master@localhost")
+
+	Tg.Register()
+
 	GamerNode.Wait()
 }

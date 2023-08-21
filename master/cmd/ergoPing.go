@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"master/common"
 	"master/config"
 	"master/log"
 
@@ -17,16 +18,28 @@ var (
 	debugGenServer *DebugGenServer
 )
 
-func call(serverName string, serverId int32, cmd ...string) (etf.Term, error) {
+func call(serverName string, serverId int32, cmd string) (etf.Term, error) {
+
+	msg := common.TransMessage{
+		CMD:  cmd,
+		From: config.ServerCfg.Node,
+	}
+
 	if config.ServerCfg.ServerName != serverName {
 		genServerName = fmt.Sprintf("%s_%d_actor", serverName, serverId)
+		msg = common.TransMessage{
+			CMD: cmd,
+			From: config.NodeConf{
+				Name: config.ServerCfg.Node.Name,
+				Addr: config.ServerCfg.Node.Addr,
+				Ip:   config.ServerCfg.Node.Ip,
+			},
+		}
 	}
-	log.Logger.Infof("call node -> %v,%v, cmd: %v", genServerName, gateNodeName, cmd)
-	if len(cmd) == 1 {
-		return debugGenServer.process.Call(gen.ProcessID{Name: genServerName, Node: gateNodeName}, etf.Atom(cmd[0]))
-	} else {
-		return debugGenServer.process.Call(gen.ProcessID{Name: genServerName, Node: gateNodeName}, cmd)
-	}
+	log.Logger.Infof("call node -> %v,%v, cmd: %v", genServerName, gateNodeName, msg)
+
+	return debugGenServer.process.Call(gen.ProcessID{Name: genServerName, Node: gateNodeName}, msg)
+
 }
 
 func send(cmd ...string) error {

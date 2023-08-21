@@ -47,3 +47,17 @@ func GetNodeInfo(serverName string, serverId int32) (nodeC *NodeConf, err error)
 	}
 	return nodeC, err
 }
+
+func GetNodeInfoByName(nodeConfName string) (nodeC *NodeConf, err error) {
+	for _, v := range Cfg.NodeList {
+		if v.Name == nodeConfName {
+			nodeC = &v
+			err = nil
+			break
+		} else {
+			nodeC = nil
+			err = fmt.Errorf("get %s faild", nodeConfName)
+		}
+	}
+	return nodeC, err
+}

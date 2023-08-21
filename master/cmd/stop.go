@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+	"master/common"
 	"master/config"
 	"master/log"
 	"strconv"
@@ -33,7 +34,7 @@ var stopCmd = &cobra.Command{
 		}
 		startDebugGen(serverName, serverId)
 
-		if info, err := call(serverName, serverId, "shutdown"); err == nil {
+		if info, err := call(serverName, serverId, common.Shutdown); err == nil {
 			log.Logger.Infof("[%v] shutdown  \n", info)
 		} else {
 			log.Logger.Infof("err: %v", err)

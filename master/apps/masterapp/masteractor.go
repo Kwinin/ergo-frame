@@ -4,6 +4,7 @@ import (
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 	"master/common"
+	"master/config"
 	"master/log"
 )
 
@@ -52,8 +53,35 @@ func (s *MasterActor) HandleCast(process *gen.ServerProcess, message etf.Term) g
 
 // HandleCall invoked if this process got sync request using ServerProcess.Call(...)
 func (s *MasterActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
-	s.CmdChan <- string(common.Shutdown)
+	//fmt.Println(34324, message, common.Shutdown, message == etf.Atom(common.Shutdown))
+	//fmt.Println(34324, message, common.Shutdown, message.(string) == common.Shutdown)
+
 	log.Logger.Infof("HandleCall: %#v \n", message)
+
+	msg := &common.TransMessage{}
+	if err := etf.TermIntoStruct(message, msg); err != nil {
+		log.Logger.Errorf("TermIntoStruct: %#v \n", err)
+	}
+
+	if msg.From == config.ServerCfg.Node {
+		// self
+		s.CmdChan <- msg.CMD
+
+	} else {
+		nodeConf, err := config.GetNodeInfoByName(msg.From.Name)
+		if err != nil {
+			log.Logger.Errorf("%s, node found faild", msg.From.Name)
+			return nil, gen.ServerStatusOK
+		}
+		log.Logger.Infof("get one from local node list %+v", nodeConf)
+		switch true {
+		case &msg.From == nodeConf:
+			log.Logger.Infof("%s, register sucessful", msg.From.Name)
+		default:
+			return nil, gen.ServerStatusOK
+		}
+
+	}
 
 	return nil, gen.ServerStatusOK
 }

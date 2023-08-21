@@ -9,7 +9,8 @@ import (
 
 // ergo.Node 节点管理
 var (
-	nodesMap sync.Map
+	nodesMap      sync.Map
+	remoteNodeMap sync.Map
 )
 
 func Start(command chan string) {
@@ -40,4 +41,17 @@ func GetNodes() map[string]node.Node {
 		return true
 	})
 	return nodemap
+}
+
+type RemoteMapStc struct {
+	Addr string
+	Used int8
+}
+
+func SetRemoteNode(conf config.NodeConf) {
+	data := &RemoteMapStc{
+		Addr: conf.Addr,
+		Used: 1,
+	}
+	remoteNodeMap.Store(conf.Name, data)
 }

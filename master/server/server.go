@@ -64,10 +64,10 @@ func StartServer() {
 		select {
 		case command := <-MainServerInfo.command:
 			switch command {
-			case string(common.StartSuccess):
+			case common.StartSuccess:
 				pid := StartSuccess()
 				log.Logger.Infof("====================== Start Game Server pid:[%v] Success =========================", pid)
-			case string(common.Shutdown):
+			case common.Shutdown:
 				MainServerInfo.CloseConn()
 				log.Logger.Infof("Shut down the game server")
 				return

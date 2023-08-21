@@ -10,3 +10,8 @@ type GbVar struct {
 	Cfg      config.Conf
 	DB       *db.DBClient
 }
+
+type TransMessage struct {
+	CMD  string          `json:"cmd"`
+	From config.NodeConf `json:"node"`
+}
