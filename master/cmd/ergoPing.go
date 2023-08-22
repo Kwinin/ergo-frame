@@ -30,6 +30,8 @@ func call(serverName string, serverId int32, cmd string) (etf.Term, error) {
 		msg = common.TransMessage{
 			CMD: cmd,
 			From: config.NodeConf{
+				Id:   config.ServerCfg.Node.Id,
+				Role: config.ServerCfg.Node.Role,
 				Name: config.ServerCfg.Node.Name,
 				Addr: config.ServerCfg.Node.Addr,
 				Ip:   config.ServerCfg.Node.Ip,

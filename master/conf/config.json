@@ -1,10 +1,10 @@
 {
   "nodeList": [
-    {"name": "gamer_1", "addr": "Gamer@localhost","sign": "dsXc4342", "ip": "127.0.0.1"},
-    {"name": "gamer_2", "addr": "node2Gamer@localhost","sign": "515dc4ASc", "ip": "127.0.0.1"},
-    {"name": "wsgate_1", "addr": "WsGate@localhost","sign": "tyss4ASc", "ip": "127.0.0.1"},
-    {"name": "wsgate_2", "addr": "node2WsGate@localhost","sign": "d342xc4ASc", "ip": "127.0.0.1"},
-    {"name": "master_1", "addr": "Master@localhost","sign": "ds344ASc", "ip": "127.0.0.1"}
+    {"id": 1,"role": "master","name": "Master" ,"addr": "Master@localhost","sign": "ds344ASc", "ip": "127.0.0.1"},
+    {"id": 2,"role": "gamer", "name": "GamerNode1", "addr": "Gamer@localhost","sign": "dsXc4342", "ip": "127.0.0.1"},
+    {"id": 3,"role": "gamer","name": "GamerNode","addr": "node2Gamer@localhost","sign": "515dc4ASc", "ip": "127.0.0.1"},
+    {"id": 4,"role": "wsgate","name": "GateNode1","addr": "WsGate@localhost","sign": "tyss4ASc", "ip": "127.0.0.1"},
+    {"id": 5,"role": "wsgate","name": "GateNode2", "addr": "node2WsGate@localhost","sign": "d342xc4ASc", "ip": "127.0.0.1"}
   ],
   "tcp": {
     "host": "127.0.0.1",

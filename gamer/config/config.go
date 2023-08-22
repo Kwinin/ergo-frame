@@ -25,11 +25,12 @@ func InitConfig(configPath string) error {
 
 	Config.Unmarshal(&Cfg)
 
-	if Cfg.Node.Name == fmt.Sprintf("%s_%d", ServerCfg.ServerName, ServerCfg.ServerID) {
+	log.Logger.Infof("cfg info id: %d/%d ; role: %s/%s", Cfg.Node.Id, ServerCfg.ServerID, Cfg.Node.Role, ServerCfg.ServerName)
+	if Cfg.Node.Id == ServerCfg.ServerID && Cfg.Node.Role == ServerCfg.ServerName {
 		ServerCfg.Node = Cfg.Node
 	}
 
-	if ServerCfg.Node.Name == "" {
+	if ServerCfg.Node.Role == "" {
 		return fmt.Errorf("no set server current node")
 	}
 

@@ -63,7 +63,7 @@ type SSDBConf struct {
 // ServerCfg  Program overall configuration
 var ServerCfg = ServerConfig{
 	ServerName: "gamer",
-	ServerID:   1,
+	ServerID:   2,
 	Version:    "1.0.0",
 
 	Daemon:     false,

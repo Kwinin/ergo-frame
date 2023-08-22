@@ -1,4 +1,4 @@
 {
-  "node": {"name": "gamer_1", "addr": "Gamer@localhost","sign": "dsXc4342", "ip": "127.0.0.1"},
+  "node": {"id": 2,"role":"gamer","name": "GamerNode1", "addr": "Gamer@localhost","sign": "dsXc4342", "ip": "127.0.0.1"},
   "masterAddr":  "Master@localhost"
 }

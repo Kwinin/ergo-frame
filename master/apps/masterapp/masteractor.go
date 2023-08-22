@@ -68,7 +68,7 @@ func (s *MasterActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom
 		s.CmdChan <- msg.CMD
 
 	} else {
-		nodeConf, err := config.GetNodeInfoByName(msg.From.Name)
+		nodeConf, err := config.GetNodeInfo(msg.From.Role, msg.From.Id)
 		if err != nil {
 			log.Logger.Errorf("%s, node found faild", msg.From.Name)
 			return nil, gen.ServerStatusOK

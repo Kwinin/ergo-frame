@@ -86,3 +86,11 @@ func (c *DBClient) HGetAll(setName string) (map[string]gossdb.Value, error) {
 func (c *DBClient) MultiHSet(setName string, kvs map[string]interface{}) error {
 	return c.client.MultiHset(setName, kvs)
 }
+
+func (c *DBClient) HDel(setName string, key string) error {
+	return c.client.Hdel(setName, key)
+}
+
+func (c *DBClient) HClear(setName string) error {
+	return c.client.Hclear(setName)
+}
