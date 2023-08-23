@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"github.com/facebookgo/pidfile"
 	"github.com/sirupsen/logrus"
+	"master/apps/masterapp/node"
 	"master/common"
 	"master/config"
 	"master/db"
 	"master/log"
-	"master/nodes"
+	"master/nodesManage"
 	"os"
 )
 
@@ -16,6 +17,7 @@ var MainServerInfo *mainServer
 
 type mainServer struct {
 	command chan string
+	db      *db.DBClient
 }
 
 func (m *mainServer) OpenConn() {
@@ -26,14 +28,14 @@ func (m *mainServer) CloseConn() {
 
 func (m *mainServer) Start() {
 	//启动网络
-	nodes.Start(m.command)
+	nodesManage.Start(m.command, m.db)
 
 	//alNode := nodes.GetNode(common.MasterGenServer, config.ServerCfg.ServerID)
 
 }
 
 func (m *mainServer) Close() {
-	for _, node := range nodes.GetNodes() {
+	for _, node := range nodesManage.GetNodes() {
 		for _, process := range node.ProcessList() {
 			process.Exit("server stop")
 		}
@@ -42,19 +44,21 @@ func (m *mainServer) Close() {
 }
 
 func StartServer() {
+
 	filename := fmt.Sprintf("./tmp/pid_%v_%v", config.ServerCfg.ServerName, config.ServerCfg.ServerID)
 	pidfile.SetPidfilePath(filename)
 	if i, _ := pidfile.Read(); i != 0 {
 		log.Logger.Warnf("服务已启动请检查或清除 进程id [%v] pidfile: [%v]  ", i, filename)
 		return
 	}
-	MainServerInfo = &mainServer{command: make(chan string)}
-	MainServerInfo.Start()
 
 	db, err := db.InfDb.NewDBClient(&db.SctSSdb{})
 	if err != nil {
 		log.Logger.Errorf("%+v", err)
 	}
+
+	MainServerInfo = &mainServer{command: make(chan string), db: db}
+	MainServerInfo.Start()
 
 	defer db.Close()
 	defer CloseServer()
@@ -68,6 +72,12 @@ func StartServer() {
 				pid := StartSuccess()
 				log.Logger.Infof("====================== Start Game Server pid:[%v] Success =========================", pid)
 			case common.Shutdown:
+				nd := node.NewNodesModel()
+				node, err := nd.GetAllNode(db)
+				if err != nil {
+					log.Logger.Errorf("db op %v", err)
+				}
+				log.Logger.Infof("GetNodeInfo, %+v", node)
 				MainServerInfo.CloseConn()
 				log.Logger.Infof("Shut down the game server")
 				return

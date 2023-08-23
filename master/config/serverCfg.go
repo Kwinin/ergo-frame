@@ -50,6 +50,7 @@ type ServerConfig struct {
 	Cookie      string
 
 	StartList         []string
+	ConnectRoles      []string
 	CentralServerNode []string
 
 	SSDB SSDBConf
@@ -111,6 +112,7 @@ var ServerCfg = ServerConfig{
 	ListenEnd:         25151,
 	Cookie:            "cookie123",
 	StartList:         []string{"db", "gateway", "server"},
+	ConnectRoles:      []string{"master", "gamer", "wsgate"},
 	CentralServerNode: []string{"CentralServerNode@127.0.0.1"},
 
 	SSDB: SSDBConf{

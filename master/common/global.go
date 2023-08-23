@@ -1,6 +1,8 @@
 package common
 
-import "master/config"
+import (
+	"master/config"
+)
 
 type TransMessage struct {
 	CMD  string          `json:"cmd"`

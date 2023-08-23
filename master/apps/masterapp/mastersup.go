@@ -5,6 +5,7 @@ import (
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 	"master/config"
+	"master/db"
 )
 
 func createMasterSup() gen.SupervisorBehavior {
@@ -14,10 +15,12 @@ func createMasterSup() gen.SupervisorBehavior {
 type MasterSup struct {
 	gen.Supervisor
 	CmdChan chan string
+	DB      *db.DBClient
 }
 
 func (sup *MasterSup) Init(args ...etf.Term) (gen.SupervisorSpec, error) {
 	sup.CmdChan = args[0].(chan string)
+	sup.DB = args[1].(*db.DBClient)
 	spec := gen.SupervisorSpec{
 		Name: fmt.Sprintf("%s_%d_sup", config.ServerCfg.ServerName, config.ServerCfg.ServerID),
 		Children: []gen.SupervisorChildSpec{
@@ -26,6 +29,7 @@ func (sup *MasterSup) Init(args ...etf.Term) (gen.SupervisorSpec, error) {
 				Child: createMasterActor(),
 				Args: []etf.Term{
 					sup.CmdChan,
+					sup.DB,
 				},
 			},
 		},

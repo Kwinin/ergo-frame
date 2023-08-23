@@ -20,3 +20,8 @@ const (
 	CloseConn    string = "CloseConn"
 	Register     string = "Register"
 )
+
+const (
+	Enable  int = 1
+	Disable int = 2
+)

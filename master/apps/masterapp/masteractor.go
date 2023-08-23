@@ -1,10 +1,14 @@
 package masterapp
 
 import (
+	"fmt"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
+	"master/apps/masterapp/node"
 	"master/common"
 	"master/config"
+	"master/db"
+	"master/helper"
 	"master/log"
 )
 
@@ -15,11 +19,13 @@ func createMasterActor() gen.ServerBehavior {
 type MasterActor struct {
 	gen.Server
 	CmdChan chan string
+	DB      *db.DBClient
 }
 
 // Init invoked on a start this process.
 func (s *MasterActor) Init(process *gen.ServerProcess, args ...etf.Term) error {
 	s.CmdChan = args[0].(chan string)
+	s.DB = args[1].(*db.DBClient)
 	log.Logger.Infof("Init process: %s with name %q and args %v \n", process.Self(), process.Name(), args)
 	//opts := gen.RemoteSpawnOptions{
 	//	Name: "remote",
@@ -75,8 +81,30 @@ func (s *MasterActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom
 		}
 		log.Logger.Infof("get one from local node list %+v", nodeConf)
 		switch true {
-		case &msg.From == nodeConf:
-			log.Logger.Infof("%s, register sucessful", msg.From.Name)
+		case msg.From == *nodeConf:
+			if helper.IsValueExists(msg.From.Role, config.ServerCfg.ConnectRoles) {
+				nd := node.NewNodesModel()
+
+				newNode := node.NodesModel{
+					Id:     msg.From.Id,
+					Role:   msg.From.Role,
+					Name:   msg.From.Name,
+					Addr:   msg.From.Addr,
+					Status: common.Enable,
+				}
+
+				err := nd.SetOneNode(s.DB, newNode)
+				if err != nil {
+					log.Logger.Errorf("db op err: %v", err)
+					return fmt.Sprintf("connect %s failed", config.ServerCfg.Node.Name), gen.ServerStatusOK
+				}
+
+				log.Logger.Infof("%s, registered successfully", msg.From.Name)
+				return fmt.Sprintf("connect %s successfully", config.ServerCfg.Node.Name), gen.ServerStatusOK
+			} else {
+				log.Logger.Errorf("check role connect failed %s isn't exist %s", msg.From.Role, config.ServerCfg.ConnectRoles)
+			}
+
 		default:
 			return nil, gen.ServerStatusOK
 		}

@@ -66,7 +66,11 @@ func main() {
 
 	_, _, Tg := cmd.NewSpawnTrans(GamerNode, "master_1_actor", "Master@localhost")
 
-	Tg.Register()
+	res, err := Tg.Register()
+	if err != nil {
+		log.Logger.Error(err)
+	}
+	log.Logger.Info(res.(string))
 
 	GamerNode.Wait()
 }

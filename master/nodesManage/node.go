@@ -1,4 +1,4 @@
-package nodes
+package nodesManage
 
 import (
 	"github.com/ergo-services/ergo"
@@ -6,10 +6,11 @@ import (
 	"github.com/ergo-services/ergo/node"
 	"master/apps/masterapp"
 	"master/config"
+	"master/db"
 	"master/log"
 )
 
-func StartMasterNode(cmd chan string) (node.Node, error) {
+func StartMasterNode(cmd chan string, db *db.DBClient) (node.Node, error) {
 	var options node.Options
 
 	lis := node.Listener{
@@ -19,7 +20,7 @@ func StartMasterNode(cmd chan string) (node.Node, error) {
 
 	// Create applications that must be started
 	apps := []gen.ApplicationBehavior{
-		masterapp.CreateMasterApp(cmd),
+		masterapp.CreateMasterApp(cmd, db),
 	}
 	options.Applications = apps
 	options.Proxy.Flags = node.DefaultProxyFlags()

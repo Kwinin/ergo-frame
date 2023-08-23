@@ -1,8 +1,9 @@
-package nodes
+package nodesManage
 
 import (
 	"github.com/ergo-services/ergo/node"
 	"master/config"
+	"master/db"
 	"master/log"
 	"sync"
 )
@@ -13,8 +14,8 @@ var (
 	remoteNodeMap sync.Map
 )
 
-func Start(command chan string) {
-	serverNode, err := StartMasterNode(command)
+func Start(command chan string, db *db.DBClient) {
+	serverNode, err := StartMasterNode(command, db)
 	if err != nil {
 		panic(err)
 	}

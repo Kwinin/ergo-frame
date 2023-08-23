@@ -3,28 +3,22 @@ package masterapp
 import (
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
-	"github.com/sirupsen/logrus"
-	"master/config"
+	"master/db"
 	"master/log"
 )
 
-func CreateMasterApp(cmd chan string) gen.ApplicationBehavior {
-	return &MasterApp{CmdChan: cmd}
-}
-
-type GbVar struct {
-	name   string
-	cfg    config.Conf
-	logger *logrus.Logger
+func CreateMasterApp(cmd chan string, db *db.DBClient) gen.ApplicationBehavior {
+	return &MasterApp{CmdChan: cmd, DB: db}
 }
 
 type MasterApp struct {
 	gen.Application
-	GbVar
+	DB      *db.DBClient
 	CmdChan chan string
 }
 
 func (app *MasterApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
+	app.initApp()
 	return gen.ApplicationSpec{
 		Name:        "masterapp",
 		Description: "description of this application",
@@ -35,6 +29,7 @@ func (app *MasterApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
 				Child: createMasterSup(),
 				Args: []etf.Term{
 					app.CmdChan,
+					app.DB,
 				},
 			},
 		},
@@ -42,11 +37,10 @@ func (app *MasterApp) Load(args ...etf.Term) (gen.ApplicationSpec, error) {
 }
 
 func (app *MasterApp) Start(process gen.Process, args ...etf.Term) {
-	app.setGbLogger()
-	app.logger.Infof("Application MasterApp started with Pid %s\n", process.Self())
+	log.Logger.Infof("Application MasterApp started with Pid %s\n", process.Self())
 
 }
 
-func (app *MasterApp) setGbLogger() {
-	app.logger = log.Logger
+func (app *MasterApp) initApp() {
+
 }
