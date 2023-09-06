@@ -16,6 +16,7 @@ var (
 	genServerName  string = fmt.Sprintf("%s_%d_actor", config.ServerCfg.ServerName, config.ServerCfg.ServerID)
 	gateNodeName   string
 	debugGenServer *DebugGenServer
+	debugGenNode   node.Node
 )
 
 func call(serverName string, serverId int32, cmd string) (etf.Term, error) {
@@ -82,10 +83,30 @@ func startDebugGen(serverName string, serverId int32) (node.Node, gen.Process) {
 	log.Logger.Infof("DebugNode.ProxyRoutes,%+v", DebugNode.ProxyRoutes())
 
 	debugGenServer = &DebugGenServer{}
+	debugGenNode = DebugNode
 	// Spawn supervisor process
 	process, _ := DebugNode.Spawn("deubg_gen", gen.ProcessOptions{}, debugGenServer)
 
 	return DebugNode, process
+}
+
+func monitor(serverName string, serverId int32) {
+	if config.ServerCfg.ServerName != serverName {
+		genServerName = fmt.Sprintf("%s_%d_actor", serverName, serverId)
+	}
+
+	log.Logger.Infof("Name: %s, Node: %s", genServerName, gateNodeName)
+	mons := debugGenServer.process.MonitorProcess(gen.ProcessID{Name: genServerName, Node: gateNodeName})
+	debugGenServer.process.MonitorNode(gateNodeName)
+	Pids := debugGenServer.process.MonitorsByName()
+	IsMons := debugGenServer.process.IsMonitor(mons)
+	log.Logger.Infof("%+v, %v", Pids, IsMons)
+	for _, v := range Pids {
+
+		log.Logger.Infof("%+v", v)
+	}
+
+	debugGenServer.process.Wait()
 }
 
 // GenServer implementation structure
@@ -106,6 +127,7 @@ func (dgs *DebugGenServer) Init(process *gen.ServerProcess, args ...etf.Term) er
 //
 //	("stop", reason) - stop with reason
 func (dgs *DebugGenServer) HandleCast(process *gen.ServerProcess, message etf.Term) gen.ServerStatus {
+	log.Logger.Infof("DebugGenServer  HandleCast pName: %s, pNodeName: %s, message: %s ", process.Name(), process.NodeName(), message)
 	return gen.ServerStatusOK
 }
 
@@ -115,6 +137,8 @@ func (dgs *DebugGenServer) HandleCast(process *gen.ServerProcess, message etf.Te
 //			 ("noreply", _, state) - noreply
 //	         ("stop", reason, _) - normal stop
 func (dgs *DebugGenServer) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
+	log.Logger.Infof("DebugGenServer  HandleCall pName: %s, pNodeName: %s, message: %s ", process.Name(), process.NodeName(), message)
+
 	return etf.Term(""), gen.ServerStatusOK
 }
 
@@ -123,9 +147,18 @@ func (dgs *DebugGenServer) HandleCall(process *gen.ServerProcess, from gen.Serve
 //
 //	("stop", reason) - normal stop
 func (dgs *DebugGenServer) HandleInfo(process *gen.ServerProcess, message etf.Term) gen.ServerStatus {
+	log.Logger.Infof("DebugGenServer  HandleInfo pName: %s, pNodeName: %s, message: %s ", process.Name(), process.NodeName(), message)
+
+	Pids := debugGenServer.process.MonitorsByName()
+	log.Logger.Infof("%+v", Pids)
+	for _, v := range Pids {
+
+		log.Logger.Infof("%+v", v)
+	}
 	return gen.ServerStatusOK
 }
 
 // Terminate called when process died
 func (dgs *DebugGenServer) Terminate(process *gen.ServerProcess, reason string) {
+	log.Logger.Infof("DebugGenServer Terminate pName: %s, pNodeName: %s, Reason: %s ", process.Name(), process.NodeName(), reason)
 }

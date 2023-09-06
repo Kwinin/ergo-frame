@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"gamer/apps/gamerapp"
 	"gamer/apps/gamerapp/db"
 	"gamer/apps/gamerapp/player"
@@ -64,7 +65,7 @@ func main() {
 
 	log.Logger.Info(GamerNode.Nodes())
 
-	_, _, Tg := cmd.NewSpawnTrans(GamerNode, "master_1_actor", "Master@localhost")
+	_, p, Tg := cmd.NewSpawnTrans(GamerNode, "master_1_actor", "Master@localhost")
 
 	res, err := Tg.Register()
 	if err != nil {
@@ -72,5 +73,9 @@ func main() {
 	}
 	log.Logger.Info(res.(string))
 
+	p.MonitorNode("mon")
+	fmt.Printf("-----  serverNode : %+v \n", GamerNode.Stats())
+	fmt.Printf("-----  Monitors : %+v,  %+v \n", p.Monitors(), GamerNode.Monitors(p.Self()))
 	GamerNode.Wait()
+
 }

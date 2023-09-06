@@ -73,11 +73,10 @@ func StartServer() {
 				log.Logger.Infof("====================== Start Game Server pid:[%v] Success =========================", pid)
 			case common.Shutdown:
 				nd := node.NewNodesModel()
-				node, err := nd.GetAllNode(db)
+				err := nd.ClearNodes(db)
 				if err != nil {
 					log.Logger.Errorf("db op %v", err)
 				}
-				log.Logger.Infof("GetNodeInfo, %+v", node)
 				MainServerInfo.CloseConn()
 				log.Logger.Infof("Shut down the game server")
 				return

@@ -1,6 +1,7 @@
 package nodesManage
 
 import (
+	"fmt"
 	"github.com/ergo-services/ergo/node"
 	"master/config"
 	"master/db"
@@ -20,6 +21,8 @@ func Start(command chan string, db *db.DBClient) {
 		panic(err)
 	}
 	log.Logger.Infof("severnode Name %s", serverNode.Name())
+	fmt.Printf("-----  serverNode : %+v", serverNode.Stats())
+
 	nodesMap.Store(serverNode.Name(), serverNode)
 }
 

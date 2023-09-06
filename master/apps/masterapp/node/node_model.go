@@ -3,7 +3,6 @@ package node
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/fatih/structs"
 	"master/db"
 )
 
@@ -61,25 +60,33 @@ func (nd *NodesModel) GetAllNode(db *db.DBClient) ([]NodesModel, error) {
 	return storedData, nil
 }
 
-func (nd *NodesModel) AddNode(db *db.DBClient) error {
-	nodeData := structs.Map(nd)
-	return db.MultiHSet(nd.TableName(), nodeData)
-}
-
-func (nd *NodesModel) DelKeyNode(db *db.DBClient, key string) error {
-	return db.HDel(nd.TableName(), key)
-}
-
-func (nd *NodesModel) GetNodeInfo(db *db.DBClient) (*NodesModel, error) {
-	data, err := db.HGetAll(nd.TableName())
+func (nd *NodesModel) ClearNodes(db *db.DBClient) error {
+	err := db.Del(nd.TableName())
 	if err != nil {
-		return nil, err
+		return err
 	}
-
-	fmt.Sprintf("dox %+v", data)
-	return nd, nil
+	return nil
 }
 
-func (nd *NodesModel) ClearNode(db *db.DBClient) error {
-	return db.HClear(nd.TableName())
-}
+//func (nd *NodesModel) AddNode(db *db.DBClient) error {
+//	nodeData := structs.Map(nd)
+//	return db.MultiHSet(nd.TableName(), nodeData)
+//}
+//
+//func (nd *NodesModel) DelKeyNode(db *db.DBClient, key string) error {
+//	return db.HDel(nd.TableName(), key)
+//}
+//
+//func (nd *NodesModel) GetNodeInfo(db *db.DBClient) (*NodesModel, error) {
+//	data, err := db.HGetAll(nd.TableName())
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	fmt.Sprintf("dox %+v", data)
+//	return nd, nil
+//}
+//
+//func (nd *NodesModel) ClearNode(db *db.DBClient) error {
+//	return db.HClear(nd.TableName())
+//}
