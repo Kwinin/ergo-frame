@@ -12,64 +12,34 @@ import (
 	"github.com/ergo-services/ergo/node"
 )
 
-var (
-	genServerName  string = fmt.Sprintf("%s_%d_actor", config.ServerCfg.ServerName, config.ServerCfg.ServerID)
+type ErgoPing struct {
+	NodeName       string
+	ToServerName   string
+	ToServerId     int32
+	genServerName  string
 	gateNodeName   string
 	debugGenServer *DebugGenServer
-	debugGenNode   node.Node
-)
-
-func call(serverName string, serverId int32, cmd string) (etf.Term, error) {
-
-	msg := common.TransMessage{
-		CMD:  cmd,
-		From: config.ServerCfg.Node,
-	}
-
-	if config.ServerCfg.ServerName != serverName {
-		genServerName = fmt.Sprintf("%s_%d_actor", serverName, serverId)
-		msg = common.TransMessage{
-			CMD: cmd,
-			From: config.NodeConf{
-				Id:   config.ServerCfg.Node.Id,
-				Role: config.ServerCfg.Node.Role,
-				Name: config.ServerCfg.Node.Name,
-				Addr: config.ServerCfg.Node.Addr,
-				Ip:   config.ServerCfg.Node.Ip,
-			},
-		}
-	}
-	log.Logger.Infof("call node -> %v,%v, cmd: %v", genServerName, gateNodeName, msg)
-
-	return debugGenServer.process.Call(gen.ProcessID{Name: genServerName, Node: gateNodeName}, msg)
-
 }
 
-func send(cmd ...string) error {
-	if len(cmd) == 1 {
-		return debugGenServer.process.Send(gen.ProcessID{Name: genServerName, Node: gateNodeName}, etf.Atom(cmd[0]))
-	} else {
-		return debugGenServer.process.Send(gen.ProcessID{Name: genServerName, Node: gateNodeName}, cmd)
-	}
-}
-
-func ping(serverName string, serverId int32) (bool, string) {
-	startDebugGen(serverName, serverId)
-	server, err := call(serverName, serverId, "ping")
-	if err != nil {
-		fmt.Println(err)
-		return false, ""
-	}
-	return true, fmt.Sprint(server)
-
-}
-
-func startDebugGen(serverName string, serverId int32) (node.Node, gen.Process) {
-	gateNode, err := config.GetNodeInfo(serverName, serverId)
-	gateNodeName = gateNode.Addr
+func NewDebugGen(nodeName, toServerName string, toServerId int32) *ErgoPing {
+	gateNode, err := config.GetNodeInfo(toServerName, toServerId)
 	if err != nil {
 		log.Logger.Errorf("startDebugGen: %v", err)
 	}
+
+	newGen := &ErgoPing{
+		NodeName:      nodeName,
+		ToServerName:  toServerName,
+		ToServerId:    toServerId,
+		genServerName: fmt.Sprintf("%s_%d_actor", toServerName, toServerId),
+		gateNodeName:  gateNode.Addr,
+	}
+	newGen.start()
+	return newGen
+
+}
+
+func (er *ErgoPing) start() (node.Node, gen.Process) {
 
 	lis := node.Listener{
 		ListenBegin: uint16(config.ServerCfg.ListenBegin),
@@ -78,35 +48,66 @@ func startDebugGen(serverName string, serverId int32) (node.Node, gen.Process) {
 	opts := node.Options{
 		Listeners: []node.Listener{lis},
 	}
-	DebugNode, _ := ergo.StartNode("debug_server@localhost", config.ServerCfg.Cookie, opts)
+	DebugNode, _ := ergo.StartNode(fmt.Sprintf("%s@localhost", er.NodeName), config.ServerCfg.Cookie, opts)
 
 	log.Logger.Infof("DebugNode.ProxyRoutes,%+v", DebugNode.ProxyRoutes())
 
-	debugGenServer = &DebugGenServer{}
-	debugGenNode = DebugNode
+	er.debugGenServer = &DebugGenServer{}
 	// Spawn supervisor process
-	process, _ := DebugNode.Spawn("deubg_gen", gen.ProcessOptions{}, debugGenServer)
+	process, _ := DebugNode.Spawn(fmt.Sprintf("%s_debugGen", er.NodeName), gen.ProcessOptions{}, er.debugGenServer)
 
 	return DebugNode, process
 }
 
-func monitor(serverName string, serverId int32) {
-	if config.ServerCfg.ServerName != serverName {
-		genServerName = fmt.Sprintf("%s_%d_actor", serverName, serverId)
+func (er *ErgoPing) Call(cmd string) (etf.Term, error) {
+
+	msg := common.TransMessage{
+		CMD: cmd,
+		From: config.NodeConf{
+			Id:   config.ServerCfg.Node.Id,
+			Role: config.ServerCfg.Node.Role,
+			Name: config.ServerCfg.Node.Name,
+			Addr: config.ServerCfg.Node.Addr,
+			Ip:   config.ServerCfg.Node.Ip,
+		},
 	}
 
-	log.Logger.Infof("Name: %s, Node: %s", genServerName, gateNodeName)
-	mons := debugGenServer.process.MonitorProcess(gen.ProcessID{Name: genServerName, Node: gateNodeName})
-	debugGenServer.process.MonitorNode(gateNodeName)
-	Pids := debugGenServer.process.MonitorsByName()
-	IsMons := debugGenServer.process.IsMonitor(mons)
+	log.Logger.Infof("call node -> %v,%v, cmd: %v", er.genServerName, er.gateNodeName, msg)
+
+	return er.debugGenServer.process.Call(gen.ProcessID{Name: er.genServerName, Node: er.gateNodeName}, msg)
+
+}
+
+func (er *ErgoPing) Send(cmd ...string) error {
+	if len(cmd) == 1 {
+		return er.debugGenServer.process.Send(gen.ProcessID{Name: er.genServerName, Node: er.gateNodeName}, etf.Atom(cmd[0]))
+	} else {
+		return er.debugGenServer.process.Send(gen.ProcessID{Name: er.genServerName, Node: er.gateNodeName}, cmd)
+	}
+}
+
+func (er *ErgoPing) Ping() (bool, string) {
+	server, err := er.Call("ping")
+	if err != nil {
+		fmt.Println(err)
+		return false, ""
+	}
+	return true, fmt.Sprint(server)
+
+}
+
+func (er *ErgoPing) Monitor() {
+	log.Logger.Infof("Name: %s, Node: %s", er.genServerName, er.gateNodeName)
+	mons := er.debugGenServer.process.MonitorProcess(gen.ProcessID{Name: er.genServerName, Node: er.gateNodeName})
+	Pids := er.debugGenServer.process.MonitorsByName()
+	IsMons := er.debugGenServer.process.IsMonitor(mons)
 	log.Logger.Infof("%+v, %v", Pids, IsMons)
 	for _, v := range Pids {
 
 		log.Logger.Infof("%+v", v)
 	}
 
-	debugGenServer.process.Wait()
+	er.debugGenServer.process.Wait()
 }
 
 // GenServer implementation structure
@@ -149,7 +150,7 @@ func (dgs *DebugGenServer) HandleCall(process *gen.ServerProcess, from gen.Serve
 func (dgs *DebugGenServer) HandleInfo(process *gen.ServerProcess, message etf.Term) gen.ServerStatus {
 	log.Logger.Infof("DebugGenServer  HandleInfo pName: %s, pNodeName: %s, message: %s ", process.Name(), process.NodeName(), message)
 
-	Pids := debugGenServer.process.MonitorsByName()
+	Pids := dgs.process.MonitorsByName()
 	log.Logger.Infof("%+v", Pids)
 	for _, v := range Pids {
 

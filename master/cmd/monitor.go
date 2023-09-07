@@ -31,9 +31,9 @@ var monitorCmd = &cobra.Command{
 			serverId = config.ServerCfg.ServerID
 			serverName = config.ServerCfg.ServerName
 		}
-		startDebugGen(serverName, serverId)
+		gen := NewDebugGen("monitor", serverName, serverId)
 
-		monitor(serverName, serverId)
+		gen.Monitor()
 
 	},
 }

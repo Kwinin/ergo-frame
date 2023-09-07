@@ -32,9 +32,9 @@ var stopCmd = &cobra.Command{
 			serverId = config.ServerCfg.ServerID
 			serverName = config.ServerCfg.ServerName
 		}
-		startDebugGen(serverName, serverId)
+		gen := NewDebugGen("stop", serverName, serverId)
 
-		if info, err := call(serverName, serverId, common.Shutdown); err == nil {
+		if info, err := gen.Call(common.Shutdown); err == nil {
 			log.Logger.Infof("[%v] shutdown  \n", info)
 		} else {
 			log.Logger.Infof("err: %v", err)
