@@ -7,11 +7,12 @@ import (
 )
 
 type NodesModel struct {
-	Id     int32
-	Role   string
-	Name   string
-	Addr   string
-	Status int
+	Id        int32
+	Role      string
+	Name      string
+	Addr      string
+	Status    int
+	GenServer string
 }
 
 func newNodesModel() *NodesModel {

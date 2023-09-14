@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"gamer/apps/gamerapp"
 	"gamer/apps/gamerapp/db"
 	"gamer/apps/gamerapp/player"
@@ -13,6 +12,7 @@ import (
 	"github.com/ergo-services/ergo"
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
+	"time"
 )
 
 func main() {
@@ -33,13 +33,6 @@ func main() {
 		Cfg:      config.Cfg,
 		DB:       db,
 	}
-	//go func() {
-	//	for {
-	//
-	//		fmt.Printf("kwinin  %v %v\n", config.Cfg.DATABASE.Url, config.Cfg.DATABASE.Username)
-	//		time.Sleep(5 * time.Second)
-	//	}
-	//}()
 
 	var options node.Options
 
@@ -59,23 +52,34 @@ func main() {
 		panic(err)
 	}
 	log.Logger.Infof("Node %q is started\n", GamerNode.Name())
-	//
+
 	GamerNode.ProvideRemoteSpawn("gamer_remote", &gamerapp.GamerActor{})
 	GamerNode.ProvideRemoteSpawn("player_remote", &player.Actor{GbVar: gbVar})
 
 	log.Logger.Info(GamerNode.Nodes())
 
-	_, p, Tg := cmd.NewSpawnTrans(GamerNode, "master_1_actor", "Master@localhost")
+	go func() {
+		_, _, Tg := cmd.NewSpawnTrans(GamerNode, "master_1_actor", config.Cfg.MasterAddr)
 
-	res, err := Tg.Register()
-	if err != nil {
-		log.Logger.Error(err)
-	}
-	log.Logger.Info(res.(string))
+		connect := false
+		for {
+			err = GamerNode.Connect(config.Cfg.MasterAddr)
+			if err != nil {
+				// 找不到 master 节点
+				connect = false
+				log.Logger.Infof("disconnect  %s reason: %v", config.Cfg.MasterAddr, err)
 
-	p.MonitorNode("mon")
-	fmt.Printf("-----  serverNode : %+v \n", GamerNode.Stats())
-	fmt.Printf("-----  Monitors : %+v,  %+v \n", p.Monitors(), GamerNode.Monitors(p.Self()))
+			} else {
+				if connect == false {
+					conStr, _ := Tg.NodeRegisterToMaster()
+					log.Logger.Info(conStr)
+					connect = true
+				}
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}()
+
 	GamerNode.Wait()
 
 }

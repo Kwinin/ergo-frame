@@ -5,36 +5,48 @@ import (
 	"gamer/common"
 	"gamer/config"
 	"gamer/log"
-
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
 )
 
 type TransGen struct {
-	genServerName  string
-	gateNodeName   string
+	toServerName   string
+	toNodeName     string
 	transGenServer *TransGenServer
+	fromServerName string
+}
+
+func NewSpawnTrans(node node.Node, toGSName, toGNName string) (node.Node, gen.Process, *TransGen) {
+	t := new(TransGen)
+	t.toServerName = toGSName
+	t.toNodeName = toGNName
+	t.transGenServer = &TransGenServer{}
+	t.fromServerName = fmt.Sprintf("%s_%d_trans_gen", config.ServerCfg.ServerName, config.ServerCfg.ServerID)
+	// Spawn supervisor process
+	process, _ := node.Spawn(t.fromServerName, gen.ProcessOptions{}, t.transGenServer)
+	return node, process, t
 }
 
 func (t *TransGen) Call(cmd ...string) (etf.Term, error) {
-	log.Logger.Infof("call node -> %v,%v, cmd: %v", t.genServerName, t.gateNodeName, cmd)
+	log.Logger.Infof("call node -> %v,%v, cmd: %v", t.toServerName, t.toNodeName, cmd)
 	if len(cmd) == 1 {
-		return t.transGenServer.process.Call(gen.ProcessID{Name: t.genServerName, Node: t.gateNodeName}, cmd[0])
+		return t.transGenServer.process.Call(gen.ProcessID{Name: t.toServerName, Node: t.toNodeName}, cmd[0])
 		//return transGenServer.process.Call(gen.ProcessID{Name: genServerName, Node: gateNodeName}, etf.Atom(cmd[0]))
 	} else {
-		return t.transGenServer.process.Call(gen.ProcessID{Name: t.genServerName, Node: t.gateNodeName}, cmd)
+		return t.transGenServer.process.Call(gen.ProcessID{Name: t.toServerName, Node: t.toNodeName}, cmd)
 	}
 }
 
 func (t *TransGen) Register() (etf.Term, error) {
 	msg := &common.TransMessage{
-		CMD:  common.Register,
-		From: config.ServerCfg.Node,
+		CMD:           common.Register,
+		FromNode:      config.ServerCfg.Node,
+		FromGenServer: t.fromServerName,
 	}
-	log.Logger.Infof("call node -> %v,%v, cmd: %v", t.genServerName, t.gateNodeName, msg)
+	log.Logger.Infof("call to node -> %v, %v, cmd: %+v", t.toServerName, t.toNodeName, *msg)
 
-	return t.transGenServer.process.Call(gen.ProcessID{Name: t.genServerName, Node: t.gateNodeName}, msg)
+	return t.transGenServer.process.Call(gen.ProcessID{Name: t.toServerName, Node: t.toNodeName}, msg)
 
 }
 
@@ -48,15 +60,20 @@ func (t *TransGen) Ping() (bool, string) {
 
 }
 
-func NewSpawnTrans(node node.Node, gSName, gNName string) (node.Node, gen.Process, *TransGen) {
-	t := new(TransGen)
-	t.genServerName = gSName
-	t.gateNodeName = gNName
-	t.transGenServer = &TransGenServer{}
-	// Spawn supervisor process
-	process, _ := node.Spawn("trans_gen", gen.ProcessOptions{}, t.transGenServer)
+func (t *TransGen) NodeRegisterToMaster() (string, error) {
+	res, err := t.Register()
+	//err.Error() == "no route to node"
+	if err != nil || res == nil {
+		failedStr := fmt.Sprintf("connect %s failed", config.Cfg.MasterAddr)
+		//t.transGenServer.process.Exit(failedStr)
+		return failedStr, err
+	}
+	return res.(string), nil
+}
 
-	return node, process, t
+func (t *TransGen) Exit() {
+	failedStr := fmt.Sprintf("connect %s failed", config.Cfg.MasterAddr)
+	t.transGenServer.process.Exit(failedStr)
 }
 
 // GenServer implementation structure
@@ -77,6 +94,8 @@ func (dgs *TransGenServer) Init(process *gen.ServerProcess, args ...etf.Term) er
 //
 //	("stop", reason) - stop with reason
 func (dgs *TransGenServer) HandleCast(process *gen.ServerProcess, message etf.Term) gen.ServerStatus {
+	log.Logger.Infof("HandleCast: %#v \n", message)
+
 	return gen.ServerStatusOK
 }
 
@@ -86,6 +105,7 @@ func (dgs *TransGenServer) HandleCast(process *gen.ServerProcess, message etf.Te
 //			 ("noreply", _, state) - noreply
 //	         ("stop", reason, _) - normal stop
 func (dgs *TransGenServer) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
+	log.Logger.Infof("HandleCall: %#v \n", message)
 	return etf.Term(""), gen.ServerStatusOK
 }
 
@@ -94,9 +114,14 @@ func (dgs *TransGenServer) HandleCall(process *gen.ServerProcess, from gen.Serve
 //
 //	("stop", reason) - normal stop
 func (dgs *TransGenServer) HandleInfo(process *gen.ServerProcess, message etf.Term) gen.ServerStatus {
+	log.Logger.Infof("HandleInfo: %#v \n", message)
+
 	return gen.ServerStatusOK
 }
 
 // Terminate called when process died
 func (dgs *TransGenServer) Terminate(process *gen.ServerProcess, reason string) {
+	log.Logger.Infof("Terminate: %#v \n", reason)
+	process.Exit("")
+
 }

@@ -40,6 +40,11 @@ var stopCmd = &cobra.Command{
 			log.Logger.Infof("err: %v", err)
 		}
 
+		//err := gen.Send(common.Shutdown)
+		//if err != nil {
+		//	log.Logger.Infof("err: %v", err)
+		//}
+
 	},
 }
 

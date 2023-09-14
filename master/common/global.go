@@ -5,6 +5,8 @@ import (
 )
 
 type TransMessage struct {
-	CMD  string          `json:"cmd"`
-	From config.NodeConf `json:"node"`
+	Msg           interface{}
+	CMD           string
+	FromNode      config.NodeConf
+	FromGenServer string
 }

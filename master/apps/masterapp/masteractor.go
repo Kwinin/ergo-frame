@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
-	"master/apps/masterapp/node"
 	"master/common"
 	"master/config"
 	"master/db"
@@ -45,7 +44,19 @@ func (s *MasterActor) Init(process *gen.ServerProcess, args ...etf.Term) error {
 
 // HandleInfo invoked if this process received message sent with Process.Send(...).
 func (s *MasterActor) HandleInfo(process *gen.ServerProcess, message etf.Term) gen.ServerStatus {
-	log.Logger.Infof("HandleInfo: %#v \n", message)
+	log.Logger.Infof("HandleInfo: pName: %s, pNodeName: %s, message: %s ", process.Name(), process.NodeName(), message)
+
+	Pids := process.MonitorsByName()
+	log.Logger.Infof(" HandleInfo,monitor pids %+v", Pids)
+
+	switch m := message.(type) {
+	case common.TransMessage:
+		log.Logger.Info(111, m.Msg)
+	case etf.Term:
+		log.Logger.Info(222, m)
+	default:
+		log.Logger.Info(333, m)
+	}
 	return gen.ServerStatusOK
 }
 
@@ -54,6 +65,14 @@ func (s *MasterActor) HandleInfo(process *gen.ServerProcess, message etf.Term) g
 // for the custom reason
 func (s *MasterActor) HandleCast(process *gen.ServerProcess, message etf.Term) gen.ServerStatus {
 	log.Logger.Infof("HandleCast: %#v \n", message)
+	switch m := message.(type) {
+	case common.TransMessage:
+		log.Logger.Info(111, m.Msg)
+	case etf.Term:
+		log.Logger.Info(222, m)
+	default:
+		log.Logger.Info(333, m)
+	}
 	return gen.ServerStatusOK
 }
 
@@ -61,48 +80,56 @@ func (s *MasterActor) HandleCast(process *gen.ServerProcess, message etf.Term) g
 func (s *MasterActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
 	//fmt.Println(34324, message, common.Shutdown, message == etf.Atom(common.Shutdown))
 	//fmt.Println(34324, message, common.Shutdown, message.(string) == common.Shutdown)
+	//
+	//HandleCall pName: master_1_actor, pNodeName: Master@localhost, message: map[CMD:Shutdown Message:test]
+	//HandleCall pName: stop_debugGen, pNodeName: stop@localhost, message: {test Shutdown}
 
-	log.Logger.Infof("HandleCall: %#v \n", message)
+	log.Logger.Infof("HandleCall pName: %s, pNodeName: %s, message: %s ", process.Name(), process.NodeName(), message)
 
 	msg := &common.TransMessage{}
 	if err := etf.TermIntoStruct(message, msg); err != nil {
 		log.Logger.Errorf("TermIntoStruct: %#v \n", err)
 	}
 
-	if msg.From == config.ServerCfg.Node {
-		// self
+	if msg.FromNode == config.ServerCfg.Node {
+		// self node
 		s.CmdChan <- msg.CMD
-
 	} else {
-		nodeConf, err := config.GetNodeInfo(msg.From.Role, msg.From.Id)
+		// other node (gamer wsgate)
+		nodeConf, err := config.GetNodeInfo(msg.FromNode.Role, msg.FromNode.Id)
 		if err != nil {
-			log.Logger.Errorf("%s, node found faild", msg.From.Name)
+			log.Logger.Errorf("%s, node found faild", msg.FromNode.Name)
 			return nil, gen.ServerStatusOK
 		}
-		log.Logger.Infof("get one from local node list %+v", nodeConf)
+		log.Logger.Infof("get one from local node list %+v, %+v, %+v", nodeConf, msg.FromNode, msg.FromNode == *nodeConf)
 		switch true {
-		case msg.From == *nodeConf:
-			if helper.IsValueExists(msg.From.Role, config.ServerCfg.ConnectRoles) {
-				nd := node.NewNodesModel()
+		case msg.FromNode == *nodeConf:
+			if helper.IsValueExists(msg.FromNode.Role, config.ServerCfg.ConnectRoles) {
+				log.Logger.Infof("Monitor to -> Name: %s, Node: %s", msg.FromGenServer, msg.FromNode.Addr)
+				process.MonitorProcess(gen.ProcessID{Name: msg.FromGenServer, Node: msg.FromNode.Addr})
+				Pids := process.MonitorsByName()
+				log.Logger.Infof("monitor pids %+v", Pids)
+				//nd := node.NewNodesModel()
+				//
+				//newNode := node.NodesModel{
+				//	Id:        msg.FromNode.Id,
+				//	Role:      msg.FromNode.Role,
+				//	Name:      msg.FromNode.Name,
+				//	Addr:      msg.FromNode.Addr,
+				//	Status:    common.Enable,
+				//	GenServer: msg.FromGenServer,
+				//}
 
-				newNode := node.NodesModel{
-					Id:     msg.From.Id,
-					Role:   msg.From.Role,
-					Name:   msg.From.Name,
-					Addr:   msg.From.Addr,
-					Status: common.Enable,
-				}
-
-				err := nd.SetOneNode(s.DB, newNode)
+				//err := nd.SetOneNode(s.DB, newNode)
 				if err != nil {
 					log.Logger.Errorf("db op err: %v", err)
 					return fmt.Sprintf("connect %s failed", config.ServerCfg.Node.Name), gen.ServerStatusOK
 				}
 
-				log.Logger.Infof("%s, registered successfully", msg.From.Name)
+				log.Logger.Infof("%s, registered successfully", msg.FromNode.Name)
 				return fmt.Sprintf("connect %s successfully", config.ServerCfg.Node.Name), gen.ServerStatusOK
 			} else {
-				log.Logger.Errorf("check role connect failed %s isn't exist %s", msg.From.Role, config.ServerCfg.ConnectRoles)
+				log.Logger.Errorf("check role connect failed %s isn't exist %s", msg.FromNode.Role, config.ServerCfg.ConnectRoles)
 			}
 
 		default:
@@ -117,6 +144,15 @@ func (s *MasterActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom
 // HandleDirect invoked on a direct request made with Process.Direct(...)
 func (s *MasterActor) HandleDirect(process *gen.ServerProcess, ref etf.Ref, message interface{}) (interface{}, gen.DirectStatus) {
 	log.Logger.Infof("HandleDirect: %#v \n", message)
+	switch m := message.(type) {
+	case common.TransMessage:
+		log.Logger.Info(111, m.Msg)
+	case etf.Term:
+		log.Logger.Info(222, m)
+	default:
+		log.Logger.Info(333, m)
+	}
+
 	return nil, nil
 }
 

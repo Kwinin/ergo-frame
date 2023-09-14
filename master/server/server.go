@@ -61,8 +61,8 @@ func StartServer() {
 	MainServerInfo.Start()
 
 	defer db.Close()
-	defer CloseServer()
 	defer MainServerInfo.Close()
+	defer CloseServer()
 	StartSuccess()
 	for {
 		select {
