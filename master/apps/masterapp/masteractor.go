@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
+	"master/apps/masterapp/node"
 	"master/common"
 	"master/config"
 	"master/db"
@@ -46,14 +47,16 @@ func (s *MasterActor) Init(process *gen.ServerProcess, args ...etf.Term) error {
 func (s *MasterActor) HandleInfo(process *gen.ServerProcess, message etf.Term) gen.ServerStatus {
 	log.Logger.Infof("HandleInfo: pName: %s, pNodeName: %s, message: %s ", process.Name(), process.NodeName(), message)
 
-	Pids := process.MonitorsByName()
-	log.Logger.Infof(" HandleInfo,monitor pids %+v", Pids)
-
 	switch m := message.(type) {
 	case common.TransMessage:
 		log.Logger.Info(111, m.Msg)
-	case etf.Term:
-		log.Logger.Info(222, m)
+	case gen.MessageDown:
+		log.Logger.Info(222, m.Reason, m.ProcessID.Node, m.ProcessID.Name)
+		nd := node.NewNodesModel()
+		err := nd.UpdateStatusNode(s.DB, m.ProcessID.Name, m.ProcessID.Node, common.OffLine)
+		if err != nil {
+			log.Logger.Error(err)
+		}
 	default:
 		log.Logger.Info(333, m)
 	}
@@ -109,18 +112,18 @@ func (s *MasterActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom
 				process.MonitorProcess(gen.ProcessID{Name: msg.FromGenServer, Node: msg.FromNode.Addr})
 				Pids := process.MonitorsByName()
 				log.Logger.Infof("monitor pids %+v", Pids)
-				//nd := node.NewNodesModel()
-				//
-				//newNode := node.NodesModel{
-				//	Id:        msg.FromNode.Id,
-				//	Role:      msg.FromNode.Role,
-				//	Name:      msg.FromNode.Name,
-				//	Addr:      msg.FromNode.Addr,
-				//	Status:    common.Enable,
-				//	GenServer: msg.FromGenServer,
-				//}
+				nd := node.NewNodesModel()
 
-				//err := nd.SetOneNode(s.DB, newNode)
+				newNode := node.NodesModel{
+					Id:        msg.FromNode.Id,
+					Role:      msg.FromNode.Role,
+					Name:      msg.FromNode.Name,
+					Addr:      msg.FromNode.Addr,
+					Status:    common.Online,
+					GenServer: msg.FromGenServer,
+				}
+
+				err := nd.AppendOneNode(s.DB, newNode)
 				if err != nil {
 					log.Logger.Errorf("db op err: %v", err)
 					return fmt.Sprintf("connect %s failed", config.ServerCfg.Node.Name), gen.ServerStatusOK

@@ -22,6 +22,7 @@ const (
 )
 
 const (
-	Enable  int = 1
-	Disable int = 2
+	Online  int = 1
+	OffLine int = 2
+	Disable int = 3
 )

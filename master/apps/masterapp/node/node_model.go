@@ -2,8 +2,9 @@ package node
 
 import (
 	"encoding/json"
-	"fmt"
+	"master/common"
 	"master/db"
+	"master/log"
 )
 
 type NodesModel struct {
@@ -28,17 +29,18 @@ func (nd *NodesModel) TableName() string {
 	return "nodes_model"
 }
 
-func (nd *NodesModel) SetOneNode(db *db.DBClient, newNode NodesModel) error {
+func (nd *NodesModel) AppendOneNode(db *db.DBClient, newNode NodesModel) error {
 	nodes, err := nd.GetAllNode(db)
-	for _, v := range nodes {
-		if newNode.Id == v.Id || newNode.Addr == v.Addr {
-			return fmt.Errorf("the same value %d/%s in DB", newNode.Id, newNode.Addr)
+
+	n := make([]NodesModel, 0)
+	for _, oldV := range nodes {
+		if newNode.GenServer == oldV.GenServer && newNode.Addr == oldV.Addr {
+			log.Logger.Warnf("the same value %d/%s,%s Status %d in DB", oldV.Id, oldV.GenServer, oldV.Addr, oldV.Status)
+			oldV.Status = common.Online
 		}
+		n = append(n, oldV)
 	}
-
-	data := append(nodes, newNode)
-
-	jsonData, err := json.Marshal(data)
+	jsonData, err := json.Marshal(n)
 	if err != nil {
 		return err
 	}
@@ -59,6 +61,24 @@ func (nd *NodesModel) GetAllNode(db *db.DBClient) ([]NodesModel, error) {
 	}
 
 	return storedData, nil
+}
+
+func (nd *NodesModel) UpdateStatusNode(db *db.DBClient, genServer string, addr string, status int) error {
+	nodes, err := nd.GetAllNode(db)
+	n := make([]NodesModel, 0)
+	for _, oldV := range nodes {
+		if genServer == oldV.GenServer && addr == oldV.Addr {
+			oldV.Status = status
+		}
+		n = append(n, oldV)
+	}
+
+	jsonData, err := json.Marshal(n)
+	if err != nil {
+		return err
+	}
+	db.Set(nd.TableName(), string(jsonData))
+	return nil
 }
 
 func (nd *NodesModel) ClearNodes(db *db.DBClient) error {
