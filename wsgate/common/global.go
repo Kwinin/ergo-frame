@@ -10,3 +10,10 @@ type GbVar struct {
 	Cfg      config.Conf
 	DB       *db.DBClient
 }
+
+type TransMessage struct {
+	Msg           interface{}
+	CMD           string
+	FromNode      config.NodeConf
+	FromGenServer string
+}

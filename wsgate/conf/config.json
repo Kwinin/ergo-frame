@@ -1,5 +1,5 @@
 {
-  "node": {"name": "wsgate_1", "addr": "WsGate@localhost","sign": "tyss4ASc", "ip": "127.0.0.1"},
+  "node": {"id": 4,"role": "wsgate","name": "GateNode1","addr": "WsGate@localhost","sign": "tyss4ASc", "ip": "127.0.0.1"},
   "masterAddr":  "Master@localhost",
   "tcp": {
     "host": "127.0.0.1",

@@ -92,6 +92,7 @@ func (s *MasterActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom
 	msg := &common.TransMessage{}
 	if err := etf.TermIntoStruct(message, msg); err != nil {
 		log.Logger.Errorf("TermIntoStruct: %#v \n", err)
+		return "failed", gen.ServerStatusOK
 	}
 
 	if msg.FromNode == config.ServerCfg.Node {
@@ -102,7 +103,7 @@ func (s *MasterActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom
 		nodeConf, err := config.GetNodeInfo(msg.FromNode.Role, msg.FromNode.Id)
 		if err != nil {
 			log.Logger.Errorf("%s, node found faild", msg.FromNode.Name)
-			return nil, gen.ServerStatusOK
+			return "failed", gen.ServerStatusOK
 		}
 		log.Logger.Infof("get one from local node list %+v, %+v, %+v", nodeConf, msg.FromNode, msg.FromNode == *nodeConf)
 		switch true {
@@ -126,22 +127,23 @@ func (s *MasterActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom
 				err := nd.AppendOneNode(s.DB, newNode)
 				if err != nil {
 					log.Logger.Errorf("db op err: %v", err)
-					return fmt.Sprintf("connect %s failed", config.ServerCfg.Node.Name), gen.ServerStatusOK
+					return "failed", gen.ServerStatusOK
 				}
 
 				log.Logger.Infof("%s, registered successfully", msg.FromNode.Name)
 				return fmt.Sprintf("connect %s successfully", config.ServerCfg.Node.Name), gen.ServerStatusOK
 			} else {
 				log.Logger.Errorf("check role connect failed %s isn't exist %s", msg.FromNode.Role, config.ServerCfg.ConnectRoles)
+				return "failed", gen.ServerStatusOK
 			}
 
 		default:
-			return nil, gen.ServerStatusOK
+			return "failed", gen.ServerStatusOK
 		}
 
 	}
 
-	return nil, gen.ServerStatusOK
+	return "failed", gen.ServerStatusOK
 }
 
 // HandleDirect invoked on a direct request made with Process.Direct(...)

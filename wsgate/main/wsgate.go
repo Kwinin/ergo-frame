@@ -5,8 +5,10 @@ import (
 	"github.com/ergo-services/ergo"
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
+	"time"
 	"wsgate/apps/wsgateapp"
 	"wsgate/apps/wsgateapp/db"
+	"wsgate/cmd"
 	"wsgate/common"
 	"wsgate/config"
 	"wsgate/log"
@@ -95,6 +97,26 @@ func main() {
 	//	time.Sleep(time.Second)
 	//}
 
-	log.Logger.Info(WsGateNode.Nodes())
+	go func() {
+		_, _, Tg := cmd.NewSpawnTrans(WsGateNode, "master_1_actor", config.Cfg.MasterAddr)
+
+		connect := false
+		for {
+			err = WsGateNode.Connect(config.Cfg.MasterAddr)
+			if err != nil {
+				// 找不到 master 节点
+				connect = false
+				log.Logger.Infof("disconnect  %s reason: %v", config.Cfg.MasterAddr, err)
+
+			} else {
+				if connect == false {
+					conStr, _ := Tg.NodeRegisterToMaster()
+					log.Logger.Info(conStr)
+					connect = true
+				}
+			}
+			time.Sleep(5 * time.Second)
+		}
+	}()
 	WsGateNode.Wait()
 }

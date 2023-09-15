@@ -56,8 +56,6 @@ func main() {
 	GamerNode.ProvideRemoteSpawn("gamer_remote", &gamerapp.GamerActor{})
 	GamerNode.ProvideRemoteSpawn("player_remote", &player.Actor{GbVar: gbVar})
 
-	log.Logger.Info(GamerNode.Nodes())
-
 	go func() {
 		_, _, Tg := cmd.NewSpawnTrans(GamerNode, "master_1_actor", config.Cfg.MasterAddr)
 

@@ -1,9 +1,10 @@
 package config
 
 type Conf struct {
-	Tcp Tcp `json:"tcp" mapstructure:"tcp"`
+	Node       NodeConf `json:"node" mapstructure:"node"`
+	MasterAddr string
+	Tcp        Tcp `json:"tcp" mapstructure:"tcp"`
 	Web
-	Node NodeConf `json:"node" mapstructure:"node"`
 }
 
 type Tcp struct {
@@ -24,6 +25,8 @@ type SSDB struct {
 }
 
 type NodeConf struct {
+	Id   int32  `mapstructure:"id"`
+	Role string `mapstructure:"role"`
 	Name string `mapstructure:"name"`
 	Addr string `mapstructure:"addr"`
 	Sign string `mapstructure:"sign"`

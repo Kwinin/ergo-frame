@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"gamer/common"
-	"gamer/config"
-	"gamer/log"
+	"wsgate/common"
+	"wsgate/config"
+	"wsgate/log"
+
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
