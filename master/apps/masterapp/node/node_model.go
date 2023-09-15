@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"master/common"
 	"master/db"
-	"master/log"
 )
 
 type NodesModel struct {
@@ -33,13 +32,20 @@ func (nd *NodesModel) AppendOneNode(db *db.DBClient, newNode NodesModel) error {
 	nodes, err := nd.GetAllNode(db)
 
 	n := make([]NodesModel, 0)
+
+	found := false
 	for _, oldV := range nodes {
 		if newNode.GenServer == oldV.GenServer && newNode.Addr == oldV.Addr {
-			log.Logger.Warnf("the same value %d/%s,%s Status %d in DB", oldV.Id, oldV.GenServer, oldV.Addr, oldV.Status)
+			found = true
 			oldV.Status = common.Online
 		}
 		n = append(n, oldV)
 	}
+
+	if !found {
+		n = append(n, newNode)
+	}
+
 	jsonData, err := json.Marshal(n)
 	if err != nil {
 		return err
