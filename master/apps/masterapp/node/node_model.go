@@ -81,6 +81,20 @@ func (nd *NodesModel) UpdateStatusNode(db *db.DBClient, genServer string, addr s
 	return nil
 }
 
+func (nd *NodesModel) GetNodesByStatus(db *db.DBClient, status int) ([]NodesModel, error) {
+	nodes, err := nd.GetAllNode(db)
+	if err != nil {
+		return nil, err
+	}
+	n := make([]NodesModel, 0)
+	for _, oldV := range nodes {
+		if oldV.Status == status {
+			n = append(n, oldV)
+		}
+	}
+	return n, nil
+}
+
 func (nd *NodesModel) ClearNodes(db *db.DBClient) error {
 	err := db.Del(nd.TableName())
 	if err != nil {
