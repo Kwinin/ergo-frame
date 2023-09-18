@@ -15,6 +15,7 @@ type TransGen struct {
 	toNodeName     string
 	transGenServer *TransGenServer
 	fromServerName string
+	fromNodeName   string
 }
 
 func NewSpawnTrans(node node.Node, toGSName, toGNName string) (node.Node, gen.Process, *TransGen) {

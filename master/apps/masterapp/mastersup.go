@@ -22,10 +22,10 @@ func (sup *MasterSup) Init(args ...etf.Term) (gen.SupervisorSpec, error) {
 	sup.CmdChan = args[0].(chan string)
 	sup.DB = args[1].(*db.DBClient)
 	spec := gen.SupervisorSpec{
-		Name: fmt.Sprintf("%s_%d_sup", config.ServerCfg.ServerName, config.ServerCfg.ServerID),
+		Name: fmt.Sprintf("%s_%d_sup", config.ServerCfg.ServerRole, config.ServerCfg.ServerID),
 		Children: []gen.SupervisorChildSpec{
 			gen.SupervisorChildSpec{
-				Name:  fmt.Sprintf("%s_%d_actor", config.ServerCfg.ServerName, config.ServerCfg.ServerID),
+				Name:  fmt.Sprintf("%s_%d_actor", config.ServerCfg.ServerRole, config.ServerCfg.ServerID),
 				Child: createMasterActor(),
 				Args: []etf.Term{
 					sup.CmdChan,

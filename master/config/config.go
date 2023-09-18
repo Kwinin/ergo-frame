@@ -23,7 +23,7 @@ func InitConfig(configPath string) error {
 	Config.Unmarshal(&Cfg)
 
 	for _, v := range Cfg.NodeList {
-		if v.Role == ServerCfg.ServerName && v.Id == ServerCfg.ServerID {
+		if v.Role == ServerCfg.ServerRole && v.Id == ServerCfg.ServerID {
 			ServerCfg.Node = v
 			break
 		}
@@ -34,15 +34,15 @@ func InitConfig(configPath string) error {
 
 	return nil
 }
-func GetNodeInfo(serverName string, serverId int32) (nodeC *NodeConf, err error) {
+func GetNodeInfo(serverRole string, serverId int32) (nodeC *NodeConf, err error) {
 	for _, v := range Cfg.NodeList {
-		if v.Id == serverId && v.Role == serverName {
+		if v.Id == serverId && v.Role == serverRole {
 			nodeC = &v
 			err = nil
 			break
 		} else {
 			nodeC = nil
-			err = fmt.Errorf("get %s_%d faild", serverName, serverId)
+			err = fmt.Errorf("get %s_%d faild", serverRole, serverId)
 		}
 	}
 	return nodeC, err

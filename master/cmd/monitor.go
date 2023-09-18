@@ -29,7 +29,7 @@ var monitorCmd = &cobra.Command{
 			serverId = int32(val)
 		} else {
 			serverId = config.ServerCfg.ServerID
-			serverName = config.ServerCfg.ServerName
+			serverName = config.ServerCfg.ServerRole
 		}
 		gen := NewDebugGen("monitor", serverName, serverId)
 

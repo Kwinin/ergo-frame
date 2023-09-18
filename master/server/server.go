@@ -45,7 +45,7 @@ func (m *mainServer) Close() {
 
 func StartServer() {
 
-	filename := fmt.Sprintf("./tmp/pid_%v_%v", config.ServerCfg.ServerName, config.ServerCfg.ServerID)
+	filename := fmt.Sprintf("./tmp/pid_%v_%v", config.ServerCfg.ServerRole, config.ServerCfg.ServerID)
 	pidfile.SetPidfilePath(filename)
 	if i, _ := pidfile.Read(); i != 0 {
 		log.Logger.Warnf("服务已启动请检查或清除 进程id [%v] pidfile: [%v]  ", i, filename)
@@ -78,7 +78,7 @@ func StartServer() {
 					log.Logger.Errorf("db op %v", err)
 				}
 				MainServerInfo.CloseConn()
-				log.Logger.Infof("Shut down the game server")
+				log.Logger.Infof("Shut down the %s node, id: %d", config.ServerCfg.ServerRole, config.ServerCfg.ServerID)
 				return
 			case "OpenConn":
 				MainServerInfo.OpenConn()

@@ -58,6 +58,14 @@ func (s *GamerActor) HandleCast(process *gen.ServerProcess, message etf.Term) ge
 // HandleCall invoked if this process got sync request using ServerProcess.Call(...)
 func (s *GamerActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
 	log.Logger.Infof("HandleCall: %#v \n", message)
+	switch m := message.(type) {
+	case common.TransMessage:
+		log.Logger.Info(111, m.Msg)
+	case common.TransMessageEtf:
+		log.Logger.Info(222, m)
+	default:
+		log.Logger.Info(333, m)
+	}
 
 	msg := &common.TransMessage{}
 	if err := etf.TermIntoStruct(message, msg); err != nil {
@@ -65,6 +73,9 @@ func (s *GamerActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom,
 	}
 
 	log.Logger.Infof("TransMessage, %+v", msg)
+	if msg.CMD == common.Shutdown {
+		process.NodeStop()
+	}
 
 	return nil, gen.ServerStatusOK
 }

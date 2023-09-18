@@ -50,13 +50,13 @@ func (s *MasterActor) HandleInfo(process *gen.ServerProcess, message etf.Term) g
 	switch m := message.(type) {
 	case common.TransMessage:
 		log.Logger.Info(111, m.Msg)
-	case gen.MessageDown:
-		log.Logger.Info(222, m.Reason, m.ProcessID.Node, m.ProcessID.Name)
+	case gen.MessageDown: // monitor
 		nd := node.NewNodesModel()
 		err := nd.UpdateStatusNode(s.DB, m.ProcessID.Name, m.ProcessID.Node, common.OffLine)
 		if err != nil {
 			log.Logger.Error(err)
 		}
+		log.Logger.Infof("<<Monitor>> return offline <- Node: %s, GenSerever: %s  Reason: %s", m.ProcessID.Node, m.ProcessID.Name, m.Reason)
 	default:
 		log.Logger.Info(333, m)
 	}
@@ -105,11 +105,11 @@ func (s *MasterActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom
 			log.Logger.Errorf("%s, node found faild", msg.FromNode.Name)
 			return "failed", gen.ServerStatusOK
 		}
-		log.Logger.Infof("get one from local node list %+v, %+v, %+v", nodeConf, msg.FromNode, msg.FromNode == *nodeConf)
+		log.Logger.Infof("get one from local node list %+v, %+v, %+v, %s", nodeConf, msg.FromNode, msg.FromNode == *nodeConf, msg.CMD)
 		switch true {
-		case msg.FromNode == *nodeConf:
-			if helper.IsValueExists(msg.FromNode.Role, config.ServerCfg.ConnectRoles) {
-				log.Logger.Infof("Monitor to -> Name: %s, Node: %s", msg.FromGenServer, msg.FromNode.Addr)
+		case msg.CMD == common.Register && msg.FromNode == *nodeConf:
+			if helper.IsValueExists(msg.FromNode.Role, config.ServerCfg.ConnectServerRoles) {
+				log.Logger.Infof("<<Monitor>> request Register to -> Node: %s, GenServerName: %s", msg.FromNode.Addr, msg.FromGenServer)
 				process.MonitorProcess(gen.ProcessID{Name: msg.FromGenServer, Node: msg.FromNode.Addr})
 				Pids := process.MonitorsByName()
 				log.Logger.Infof("monitor pids %+v", Pids)
@@ -133,7 +133,7 @@ func (s *MasterActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom
 				log.Logger.Infof("%s, registered successfully", msg.FromNode.Name)
 				return fmt.Sprintf("connect %s successfully", config.ServerCfg.Node.Name), gen.ServerStatusOK
 			} else {
-				log.Logger.Errorf("check role connect failed %s isn't exist %s", msg.FromNode.Role, config.ServerCfg.ConnectRoles)
+				log.Logger.Errorf("check role connect failed %s isn't exist %s", msg.FromNode.Role, config.ServerCfg.ConnectServerRoles)
 				return "failed", gen.ServerStatusOK
 			}
 

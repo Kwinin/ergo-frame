@@ -9,7 +9,7 @@ import (
 )
 
 var stopCmd = &cobra.Command{
-	Use:   "stop [serverName] [serverId]",
+	Use:   "stop [serverRole] [serverId]",
 	Short: "关闭服务",
 	Long: `
 	ERGO-FRAME
@@ -19,9 +19,9 @@ var stopCmd = &cobra.Command{
 `,
 	Run: func(cmd *cobra.Command, args []string) {
 		var serverId int32
-		var serverName string
+		var serverRole string
 		if len(args) == 2 {
-			serverName = args[0]
+			serverRole = args[0]
 			val, err := strconv.Atoi(args[1])
 			if err != nil {
 				log.Logger.Info("转换失败：", err)
@@ -30,9 +30,9 @@ var stopCmd = &cobra.Command{
 			serverId = int32(val)
 		} else {
 			serverId = config.ServerCfg.ServerID
-			serverName = config.ServerCfg.ServerName
+			serverRole = config.ServerCfg.ServerRole
 		}
-		gen := NewDebugGen("stop", serverName, serverId)
+		gen := NewDebugGen("stop", serverRole, serverId)
 
 		if info, err := gen.Call(common.Shutdown); err == nil {
 			log.Logger.Infof("[%v] shutdown  \n", info)
