@@ -36,7 +36,6 @@ func (state *StateModel) GetAllState(db *db.DBClient) (*StateModel, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	state.PlayerId = data["PlayerId"].Int()
 	state.Status = data["Status"].Int()
 	state.Pid = data["Pid"].String()

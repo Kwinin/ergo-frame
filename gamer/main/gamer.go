@@ -52,9 +52,15 @@ func main() {
 	}
 	log.Logger.Infof("Node %q is started\n", GamerNode.Name())
 
-	GamerNode.ProvideRemoteSpawn("gamer_remote", &gamerapp.GamerActor{})
-	GamerNode.ProvideRemoteSpawn("player_remote", &player.Actor{GbVar: gbVar})
+	err = GamerNode.ProvideRemoteSpawn("gamer_remote", &gamerapp.GamerActor{})
+	if err != nil {
+		log.Logger.Error(err)
+	}
+	err = GamerNode.ProvideRemoteSpawn("player_remote", &player.Actor{GbVar: gbVar})
+	if err != nil {
+		log.Logger.Error(err)
 
+	}
 	go func() {
 		_, _, Tg := cmd.NewSpawnTrans(GamerNode, "master_1_actor", config.Cfg.MasterAddr)
 

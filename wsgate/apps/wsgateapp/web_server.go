@@ -89,9 +89,14 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 			log.Logger.Error("消息格式错误")
 		}
 
+		response := "This is the server response."
 		switch true {
 		case msg.Code == 0:
-			web.login(msg)
+			response, err = web.login(msg)
+			fmt.Println(3333, response)
+			if err != nil {
+				log.Logger.Error(err)
+			}
 		case msg.Code != 0:
 			sta := state.NewStateModel(msg.Account)
 			store, err := sta.GetAllState(web.DB)
@@ -100,6 +105,7 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 			}
 			name := fmt.Sprintf("player_remote_%d", store.PlayerId)
 
+			// todo: rand a gamer node
 			res, err := web.process.Call(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, msg)
 			if err != nil {
 				log.Logger.Infof("callerr %+v", err)
@@ -108,7 +114,7 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 		}
 
 		// Send a response back to the client
-		response := "This is the server response."
+
 		err = conn.WriteMessage(websocket.TextMessage, []byte(response))
 		if err != nil {
 			fmt.Println("Error writing message:", err)
@@ -124,31 +130,33 @@ type Message struct {
 	Code     int    `json:"code"`
 }
 
-func (web *webServer) login(msg *Message) {
+func (web *webServer) login(msg *Message) (string, error) {
 
 	opts := gen.RemoteSpawnOptions{
 		Name: fmt.Sprintf("player_remote_%d", msg.Account),
 	}
+	sta := state.NewStateModel(msg.Account)
+	sta.PlayerId = msg.Account
+	store, err := sta.GetAllState(web.DB)
+	if err != nil {
+		return "", err
+	}
+	if store.Pid != "" || store.Status == common.RoleStatusLogin {
+		return "disable repeat login", nil
+	}
 
+	// todo : rand a gamer node
 	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, msg)
 	if err != nil {
-		fmt.Println(222)
-		log.Logger.Error(err)
+		return "", err
 	}
+
 	log.Logger.Infof("OK selfName: %s, selfId %s, returnId %d,%s", web.process.Name(), web.process.Self(), gotPid.ID, gotPid.Node)
 	log.Logger.Infof("msg %+v", msg)
-	sta := state.NewStateModel(msg.Account)
-	//store, err := sta.GetAllState(web.DB)
-	//if err != nil {
-	//	log.Logger.Error(err)
-	//}
-	//fmt.Printf("4324 %+v \n", store)
-	//if store.PlayerId != msg.Account {
-	//	log.Logger.Infof("login failed")
-	//	return
-	//}
+
 	sta.Pid = gotPid.String()
 	sta.PlayerId = msg.Account
-	sta.Status = 1
+	sta.Status = common.RoleStatusLogin
 	sta.AddState(web.DB)
+	return "login successful", nil
 }
