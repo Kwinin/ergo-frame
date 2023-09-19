@@ -25,8 +25,8 @@ func InitConfig(configPath string) error {
 
 	Config.Unmarshal(&Cfg)
 
-	log.Logger.Infof("cfg info id: %d/%d ; role: %s/%s", Cfg.Node.Id, ServerCfg.ServerID, Cfg.Node.Role, ServerCfg.ServerName)
-	if Cfg.Node.Id == ServerCfg.ServerID && Cfg.Node.Role == ServerCfg.ServerName {
+	log.Logger.Infof("cfg info id: %d/%d ; role: %s/%s", Cfg.Node.Id, ServerCfg.ServerID, Cfg.Node.Role, ServerCfg.ServerRole)
+	if Cfg.Node.Id == ServerCfg.ServerID && Cfg.Node.Role == ServerCfg.ServerRole {
 		ServerCfg.Node = Cfg.Node
 	}
 

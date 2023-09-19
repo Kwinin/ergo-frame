@@ -2,7 +2,7 @@ package config
 
 // ServerConfig  server cfg
 type ServerConfig struct {
-	ServerName string
+	ServerRole string
 	ServerID   int32
 	Version    string
 	Node       NodeConf
@@ -49,7 +49,7 @@ type ServerConfig struct {
 	ListenEnd   int
 	Cookie      string
 
-	StartList         []string
+	StartServerList   []string
 	CentralServerNode []string
 
 	SSDB SSDBConf
@@ -62,7 +62,7 @@ type SSDBConf struct {
 
 // ServerCfg  Program overall configuration
 var ServerCfg = ServerConfig{
-	ServerName: "gamer",
+	ServerRole: "gamer",
 	ServerID:   2,
 	Version:    "1.0.0",
 
@@ -110,7 +110,7 @@ var ServerCfg = ServerConfig{
 	ListenBegin:       15151,
 	ListenEnd:         25151,
 	Cookie:            "cookie123",
-	StartList:         []string{"db", "gateway", "server"},
+	StartServerList:   []string{"db", "gateway", "server"},
 	CentralServerNode: []string{"CentralServerNode@127.0.0.1"},
 
 	SSDB: SSDBConf{

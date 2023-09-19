@@ -23,7 +23,7 @@ func NewSpawnTrans(node node.Node, toGSName, toGNName string) (node.Node, gen.Pr
 	t.toServerName = toGSName
 	t.toNodeName = toGNName
 	t.transGenServer = &TransGenServer{}
-	t.fromServerName = fmt.Sprintf("%s_%d_trans_gen", config.ServerCfg.ServerName, config.ServerCfg.ServerID)
+	t.fromServerName = fmt.Sprintf("%s_%d_trans_gen", config.ServerCfg.ServerRole, config.ServerCfg.ServerID)
 	// Spawn supervisor process
 	process, _ := node.Spawn(t.fromServerName, gen.ProcessOptions{}, t.transGenServer)
 	return node, process, t

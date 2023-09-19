@@ -24,10 +24,10 @@ type GamerSup struct {
 
 func (sup *GamerSup) Init(args ...etf.Term) (gen.SupervisorSpec, error) {
 	spec := gen.SupervisorSpec{
-		Name: fmt.Sprintf("%s_%d_sup", config.ServerCfg.ServerName, config.ServerCfg.ServerID),
+		Name: fmt.Sprintf("%s_%d_sup", config.ServerCfg.ServerRole, config.ServerCfg.ServerID),
 		Children: []gen.SupervisorChildSpec{
 			gen.SupervisorChildSpec{
-				Name:  fmt.Sprintf("%s_%d_actor", config.ServerCfg.ServerName, config.ServerCfg.ServerID),
+				Name:  fmt.Sprintf("%s_%d_actor", config.ServerCfg.ServerRole, config.ServerCfg.ServerID),
 				Child: createGamerActor(),
 			},
 			gen.SupervisorChildSpec{
