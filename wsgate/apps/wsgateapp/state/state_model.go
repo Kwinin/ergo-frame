@@ -3,7 +3,7 @@ package state
 import (
 	"fmt"
 	"github.com/fatih/structs"
-	"wsgate/apps/wsgateapp/db"
+	"wsgate/db"
 )
 
 type StateModel struct {

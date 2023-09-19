@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"gamer/apps/gamerapp"
-	"gamer/apps/gamerapp/db"
 	"gamer/apps/gamerapp/player"
 	"gamer/cmd"
 	"gamer/common"
 	"gamer/config"
+	"gamer/db"
 	"gamer/log"
 	"github.com/ergo-services/ergo"
 	"github.com/ergo-services/ergo/gen"
@@ -22,8 +22,7 @@ func main() {
 	if err != nil {
 		log.Logger.Error(err)
 	}
-
-	db, err := db.NewDBClient(config.ServerCfg.SSDB.Host, config.ServerCfg.SSDB.Port)
+	db, err := db.InfDb.NewDBClient(&db.SctSSdb{})
 	if err != nil {
 		log.Logger.Errorf("%+v", err)
 	}

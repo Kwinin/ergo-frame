@@ -1,8 +1,8 @@
 package common
 
 import (
-	"wsgate/apps/wsgateapp/db"
 	"wsgate/config"
+	"wsgate/db"
 )
 
 type GbVar struct {

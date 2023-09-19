@@ -7,10 +7,10 @@ import (
 	"github.com/ergo-services/ergo/node"
 	"time"
 	"wsgate/apps/wsgateapp"
-	"wsgate/apps/wsgateapp/db"
 	"wsgate/cmd"
 	"wsgate/common"
 	"wsgate/config"
+	"wsgate/db"
 	"wsgate/log"
 )
 
@@ -22,7 +22,7 @@ func main() {
 		log.Logger.Error(err)
 	}
 
-	db, err := db.NewDBClient(config.ServerCfg.SSDB.Host, config.ServerCfg.SSDB.Port)
+	db, err := db.InfDb.NewDBClient(&db.SctSSdb{})
 	if err != nil {
 		log.Logger.Errorf("%+v", err)
 	}

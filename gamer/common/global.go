@@ -1,8 +1,8 @@
 package common
 
 import (
-	"gamer/apps/gamerapp/db"
 	"gamer/config"
+	"gamer/db"
 )
 
 type GbVar struct {

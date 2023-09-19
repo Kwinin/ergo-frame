@@ -1,6 +1,7 @@
 package db
 
 import (
+	"gamer/config"
 	"github.com/seefan/gossdb"
 	"github.com/seefan/gossdb/conf"
 )
@@ -25,8 +26,11 @@ type DBClient struct {
 	client *gossdb.Client
 }
 
-func NewDBClient(Host string, Port int) (*DBClient, error) {
-	client, err := GetDBClient(Host, Port)
+type SctSSdb struct {
+}
+
+func (st *SctSSdb) NewDBClient() (*DBClient, error) {
+	client, err := GetDBClient(config.ServerCfg.SSDB.Host, config.ServerCfg.SSDB.Port)
 	if err != nil {
 		return nil, err
 	}
@@ -81,4 +85,12 @@ func (c *DBClient) HGetAll(setName string) (map[string]gossdb.Value, error) {
 
 func (c *DBClient) MultiHSet(setName string, kvs map[string]interface{}) error {
 	return c.client.MultiHset(setName, kvs)
+}
+
+func (c *DBClient) HDel(setName string, key string) error {
+	return c.client.Hdel(setName, key)
+}
+
+func (c *DBClient) HClear(setName string) error {
+	return c.client.Hclear(setName)
 }
