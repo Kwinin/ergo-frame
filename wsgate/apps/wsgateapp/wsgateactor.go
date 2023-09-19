@@ -3,6 +3,8 @@ package wsgateapp
 import (
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
+	"wsgate/common"
+	"wsgate/config"
 	"wsgate/log"
 )
 
@@ -41,6 +43,24 @@ func (s *WsGateActor) HandleCast(process *gen.ServerProcess, message etf.Term) g
 // HandleCall invoked if this process got sync request using ServerProcess.Call(...)
 func (s *WsGateActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
 	log.Logger.Infof("HandleCall: %#v \n", message)
+
+	msg := &common.TransMessage{}
+	if err := etf.TermIntoStruct(message, msg); err != nil {
+		log.Logger.Errorf("TermIntoStruct: %#v \n", err)
+	}
+
+	log.Logger.Infof("TransMessage, %+v", msg)
+	if msg.CMD == common.Shutdown {
+		// todo:待优化
+		if msg.FromNode.Addr == config.Cfg.MasterAddr {
+			// 数据落盘
+
+			process.Exit("active out")
+			process.NodeStop()
+		}
+
+	}
+
 	return nil, gen.ServerStatusOK
 }
 

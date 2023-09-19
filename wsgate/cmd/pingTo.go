@@ -12,30 +12,32 @@ import (
 )
 
 type TransGen struct {
-	toServerName   string
-	toNodeName     string
-	transGenServer *TransGenServer
-	fromServerName string
+	pingName          string
+	toGenServerName   string
+	toNodeAddr        string
+	transGenServer    *TransGenServer
+	fromGenServerName string
+	fromNodeAddr      string
 }
 
 func NewSpawnTrans(node node.Node, toGSName, toGNName string) (node.Node, gen.Process, *TransGen) {
 	t := new(TransGen)
-	t.toServerName = toGSName
-	t.toNodeName = toGNName
+	t.toGenServerName = toGSName
+	t.toNodeAddr = toGNName
 	t.transGenServer = &TransGenServer{}
-	t.fromServerName = fmt.Sprintf("%s_%d_trans_gen", config.ServerCfg.ServerRole, config.ServerCfg.ServerID)
+	t.fromGenServerName = fmt.Sprintf("%s_%d_trans_gen", config.ServerCfg.ServerRole, config.ServerCfg.ServerID)
 	// Spawn supervisor process
-	process, _ := node.Spawn(t.fromServerName, gen.ProcessOptions{}, t.transGenServer)
+	process, _ := node.Spawn(t.fromGenServerName, gen.ProcessOptions{}, t.transGenServer)
 	return node, process, t
 }
 
 func (t *TransGen) Call(cmd ...string) (etf.Term, error) {
-	log.Logger.Infof("call node -> %v,%v, cmd: %v", t.toServerName, t.toNodeName, cmd)
+	log.Logger.Infof("call node -> %v,%v, cmd: %v", t.toGenServerName, t.toNodeAddr, cmd)
 	if len(cmd) == 1 {
-		return t.transGenServer.process.Call(gen.ProcessID{Name: t.toServerName, Node: t.toNodeName}, cmd[0])
+		return t.transGenServer.process.Call(gen.ProcessID{Name: t.toGenServerName, Node: t.toNodeAddr}, cmd[0])
 		//return transGenServer.process.Call(gen.ProcessID{Name: genServerName, Node: gateNodeName}, etf.Atom(cmd[0]))
 	} else {
-		return t.transGenServer.process.Call(gen.ProcessID{Name: t.toServerName, Node: t.toNodeName}, cmd)
+		return t.transGenServer.process.Call(gen.ProcessID{Name: t.toGenServerName, Node: t.toNodeAddr}, cmd)
 	}
 }
 
@@ -43,11 +45,11 @@ func (t *TransGen) Register() (etf.Term, error) {
 	msg := &common.TransMessage{
 		CMD:           common.Register,
 		FromNode:      config.ServerCfg.Node,
-		FromGenServer: t.fromServerName,
+		FromGenServer: t.fromGenServerName,
 	}
-	log.Logger.Infof("call to node -> %v, %v, cmd: %+v", t.toServerName, t.toNodeName, *msg)
+	log.Logger.Infof("call to node -> %v, %v, cmd: %+v", t.toGenServerName, t.toNodeAddr, *msg)
 
-	return t.transGenServer.process.Call(gen.ProcessID{Name: t.toServerName, Node: t.toNodeName}, msg)
+	return t.transGenServer.process.Call(gen.ProcessID{Name: t.toGenServerName, Node: t.toNodeAddr}, msg)
 
 }
 
