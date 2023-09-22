@@ -1,6 +1,7 @@
 package mod
 
 import (
+	"fmt"
 	"gamer/common"
 	"gamer/log"
 	"runtime"
@@ -27,4 +28,8 @@ func (s Shop) Name() string {
 
 func (a Shop) OnDate() string {
 	return time.Now().String()
+}
+
+func (a Shop) OnMessage(Id int) string {
+	return fmt.Sprintf("use id :%d", Id)
 }

@@ -92,12 +92,14 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 		response := "This is the server response."
 		switch true {
 		case msg.Code == 0:
+			// 登录
 			response, err = web.login(msg)
-			fmt.Println(3333, response)
 			if err != nil {
 				log.Logger.Error(err)
 			}
-		case msg.Code != 0:
+
+		case msg.Code == 1:
+			// 注销
 			sta := state.NewStateModel(msg.Account)
 			store, err := sta.GetAllState(web.DB)
 			if err != nil {
@@ -109,8 +111,24 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 			res, err := web.process.Call(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, msg)
 			if err != nil {
 				log.Logger.Infof("callerr %+v", err)
+				return
 			}
-			log.Logger.Infof("callRes %+v", res)
+			err = sta.ClearState(web.DB)
+			response = fmt.Sprintf("user process: %s: account: %d exited", name, res)
+		case msg.Code > 1:
+			name := fmt.Sprintf("player_remote_%d", msg.Account)
+
+			// todo: rand a gamer node
+			res, err := web.process.Call(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, msg)
+			if err != nil {
+				log.Logger.Infof("callerr %+v", err)
+				return
+			}
+			response = fmt.Sprintf("successful  %+v", res)
+
+		default:
+			response = fmt.Sprintf("unknown code %d", msg.Code)
+
 		}
 
 		// Send a response back to the client
@@ -151,7 +169,7 @@ func (web *webServer) login(msg *Message) (string, error) {
 		return "", err
 	}
 
-	log.Logger.Infof("OK selfName: %s, selfId %s, returnId %d,%s", web.process.Name(), web.process.Self(), gotPid.ID, gotPid.Node)
+	log.Logger.Infof("OK selfName: %s, selfId %s, returnId %d,%s,%s", web.process.Name(), web.process.Self(), gotPid.ID, gotPid.Node, gotPid.String())
 	log.Logger.Infof("msg %+v", msg)
 
 	sta.Pid = gotPid.String()

@@ -48,3 +48,7 @@ func (state *StateModel) GetAllState(db *db.DBClient) (*StateModel, error) {
 	//store.Pid = pid
 	return state, nil
 }
+
+func (state *StateModel) ClearState(db *db.DBClient) error {
+	return db.HClear(state.TableName())
+}

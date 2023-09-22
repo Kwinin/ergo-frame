@@ -35,7 +35,8 @@ func (nd *NodesModel) AppendOneNode(db *db.DBClient, newNode NodesModel) error {
 
 	found := false
 	for _, oldV := range nodes {
-		if newNode.GenServer == oldV.GenServer && newNode.Addr == oldV.Addr {
+		//if newNode.GenServer == oldV.GenServer && newNode.Addr == oldV.Addr {
+		if newNode.Id == oldV.Id {
 			found = true
 			oldV.Status = common.Online
 		}

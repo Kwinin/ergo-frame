@@ -93,8 +93,9 @@ func (s *Actor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, mess
 	switch msg.Code {
 	case 1:
 		processName := process.Name()
-		process.Exit(fmt.Sprintf("%s 已经停止", processName))
-		return processName, gen.ServerStatusOK
+		process.Exit(fmt.Sprintf("%s/%s 已经停止", process.Self().String(), processName))
+
+		return msg.Account, gen.ServerStatusOK
 	case 2:
 		name := fmt.Sprintf("%s_%d", "player", msg.Account)
 
