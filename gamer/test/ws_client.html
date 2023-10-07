@@ -1,78 +1,145 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>WebSocket Custom Protobuf Client</title>
+  <meta charset="UTF-8"> <!-- 设置字符编码为UTF-8 -->
+  <title>WebSocket Protobuf Client</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/protobufjs/6.11.4/protobuf.js"></script>
 </head>
 <body>
-<input type="text" id="accountInput" placeholder="Enter account">
-<input type="password" id="passwordInput" placeholder="Enter password">
-<input type="text" id="dataInput" placeholder="Enter data">
-<input type="number" id="codeInput" placeholder="Enter code">
-<button onclick="sendMessage()">Send Message</button>
-<div id="response"></div>
+<h1>WebSocket Protobuf Client</h1>
+<button id="connectButton">Connect to WebSocket</button>
+<button id="loginButton">Login</button>
+<div id="output"></div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/protobufjs/6.11.5/protobuf.js"></script>
 <script>
-  // 导入protobuf定义
-  protobuf.load("account.proto", function (err, root) {
-    if (err) throw err;
+  // WebSocket server URL
+  const serverUrl = "ws://127.0.0.1:8080/ws";
 
-    // 获取消息类型
-    var c2s_Login = root.lookupType("account.c2s_Login");
-    var CustomResponse = root.lookupType("account.CustomResponse");
+  // WebSocket connection
+  let socket;
 
-    // 创建WebSocket连接
-    var socket = new WebSocket("wss://127.0.0.1:8080/ws");
+  // Event handler for "Connect to WebSocket" button
+  document.getElementById("connectButton").addEventListener("click", () => {
+    socket = new WebSocket(serverUrl);
 
-    socket.onopen = function () {
-      console.log("WebSocket connection opened");
-    };
+    // WebSocket open event handler
+    socket.addEventListener("open", (event) => {
+      console.log("WebSocket connection opened.");
+    });
 
-    socket.onmessage = function (event) {
-      console.log("Received response");
+    // WebSocket message event handler
+    socket.addEventListener("message", (event) => {
+      const data = event.data;
+      handleMessage(data);
+    });
 
-      // 解析protobuf响应
-      var response = CustomResponse.decode(new Uint8Array(event.data));
-      var responseMessage = response.message;
+    // WebSocket close event handler
+    socket.addEventListener("close", (event) => {
+      console.log("WebSocket connection closed.");
+    });
+  });
 
-      // 显示响应消息
-      var responseDiv = document.getElementById("response");
-      responseDiv.innerHTML = "Server response: " + responseMessage;
-    };
-
-    socket.onerror = function (error) {
-      console.error("WebSocket error:", error);
-    };
-
-    socket.onclose = function () {
-      console.log("WebSocket connection closed");
-    };
-
-    function sendMessage() {
-      var accountInput = document.getElementById("accountInput");
-      var passwordInput = document.getElementById("passwordInput");
-      var dataInput = document.getElementById("dataInput");
-      var codeInput = document.getElementById("codeInput");
-
-      // 获取输入值
-      var account = accountInput.value;
-      var password = passwordInput.value;
-      var data = dataInput.value;
-      var code = parseInt(codeInput.value);
-
-      // 创建protobuf消息
-      var request = c2s_Login.create({
-        account: account,
-        password: password,
-        data: data,
-        code: code
+  // Event handler for "Login" button
+  document.getElementById("loginButton").addEventListener("click", () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      // Define protobuf message types
+      const root = protobuf.Root.fromJSON({
+        nested: {
+          // 在这里定义你的 Protobuf 消息类型
+          c2s_Login: {
+            fields: {
+              account: {
+                type: "string",
+                id: 1
+              },
+              password: {
+                type: "string",
+                id: 2
+              }
+            }
+          },
+          // 添加其他消息类型（如果有的话）
+        }
       });
-      var buffer = c2s_Login.encode(request).finish();
+      const c2sLoginType = root.lookupType("c2s_Login");
 
-      // 发送protobuf消息
-      socket.send(buffer);
+      // Create a c2s_Login message
+      const c2sLoginMessage = {
+        account: "32222",
+        password: "kwinin",
+      };
+
+      // Encode the message using protobuf
+      const c2sLoginBuffer = c2sLoginType.encode(c2sLoginMessage).finish();
+
+      // Create the message header
+      const header = new ArrayBuffer(6);
+      const headerView = new DataView(header);
+      const messageLength = c2sLoginBuffer.byteLength + 6; // Length of the message
+      headerView.setUint16(0, messageLength, true); // Set message length (little-endian)
+      headerView.setUint16(2, 1000, true); // Set module ID (little-endian)
+      headerView.setUint16(4, 1001, true); // Set method ID (little-endian)
+
+// Concatenate header and message
+      const c2sLoginData = new Uint8Array(messageLength);
+      c2sLoginData.set(new Uint8Array(header), 0);
+      c2sLoginData.set(new Uint8Array(c2sLoginBuffer), 6);
+
+
+      // Send the message to the server
+      console.log(111,c2sLoginData)
+      socket.send(c2sLoginData);
+    } else {
+      console.log("WebSocket is not open.");
     }
   });
+
+  // Handle incoming messages
+  function handleMessage(data) {
+    // Parse the incoming message
+    const view = new DataView(data.buffer);
+    const length = view.getUint16(0);
+    const moduleID = view.getUint16(4);
+    const methodID = view.getUint16(6);
+
+    // Extract the message body
+    const messageBody = new Uint8Array(data.buffer, 8);
+
+    // Handle the message based on moduleID and methodID
+    switch (moduleID) {
+      case 1000: // Account Module
+        handleAccountModule(methodID, messageBody);
+        break;
+            // Add more cases for other modules if needed
+      default:
+        console.log(
+                `Received message with unknown moduleID: ${moduleID}`
+        );
+        break;
+    }
+  }
+
+  // Handle messages for the Account Module
+  function handleAccountModule(methodID, messageBody) {
+    switch (methodID) {
+      case 1001: // Login
+        // Define protobuf message types
+        const root = protobuf.Root.fromJSON(/* Your protobuf schema JSON */);
+        const c2sLoginType = root.lookupType("c2s_Login");
+
+        // Decode the message using protobuf
+        const c2sLoginMessage = c2sLoginType.decode(messageBody);
+        console.log("Received login response:", c2sLoginMessage);
+        // Handle the login response
+        break;
+            // Add more cases for other methods if needed
+      default:
+        console.log(
+                `Received message with unknown methodID in Account Module: ${methodID}`
+        );
+        break;
+    }
+  }
 </script>
 </body>
 </html>

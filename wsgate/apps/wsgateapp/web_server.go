@@ -1,9 +1,10 @@
 package wsgateapp
 
 import (
+	"bytes"
 	"context"
 	"crypto/tls"
-	"encoding/json"
+	"encoding/binary"
 	"fmt"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
@@ -57,7 +58,8 @@ func (web *webServer) InitWeb(process *gen.WebProcess, args ...etf.Term) (gen.We
 
 	webRoot := process.StartWebHandler(&rootHandler{}, gen.WebHandlerOptions{})
 	mux.Handle("/", webRoot)
-	mux.HandleFunc("/ws", web.handleWebSocketConnection)
+	//mux.HandleFunc("/ws", web.handleWebSocketConnection)
+	mux.HandleFunc("/ws", web.handleWebSocket)
 	options.Handler = mux
 
 	log.Logger.Infof("Start Web server on %s://%s:%d/\n", proto, options.Host, options.Port)
@@ -82,7 +84,6 @@ func (web *webServer) HandleWebCast(process *gen.WebProcess, message etf.Term) g
 		case "timeloop":
 			logrus.Debug("time loop")
 		}
-		fmt.Println(233, info)
 		web.sendChan <- []byte(info)
 
 	case etf.Tuple:
@@ -91,7 +92,6 @@ func (web *webServer) HandleWebCast(process *gen.WebProcess, message etf.Term) g
 		//module := info[0].(int32)
 		//method := info[1].(int32)
 		//buf := info[2].([]byte)
-
 	case []byte:
 		fmt.Println(2333)
 
@@ -109,6 +109,10 @@ func (web *webServer) HandleWebInfo(process *gen.WebProcess, message etf.Term) g
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
+	CheckOrigin: func(r *http.Request) bool {
+		// 允许所有Origin的连接
+		return true
+	},
 }
 
 func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *http.Request) {
@@ -122,64 +126,80 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 
 	sendctx, sendcancelFunc := context.WithCancel(context.Background())
 	defer sendcancelFunc()
-
+	// 读取消息头
+	var header struct {
+		Length   uint16
+		ModuleID uint16
+		MethodID uint16
+	}
 	for {
-		// Read message from the client
-		_, message, err := conn.ReadMessage()
+
+		messageType, p, err := conn.ReadMessage()
+		fmt.Println(333, messageType, p, len(p))
 		if err != nil {
 			log.Logger.Error("Error reading message:", err)
-			break
+			return
 		}
+
+		if messageType != websocket.BinaryMessage {
+			log.Logger.Error("Unexpected message type")
+			continue
+		}
+
+		err = binary.Read(bytes.NewReader(p[:6]), binary.LittleEndian, &header)
+		if err != nil {
+			log.Logger.Error("Error reading message header:", err)
+
+		}
+		fmt.Println(3434, header.ModuleID, header.MethodID)
+
+		// 读取消息体
+		messageBody := p[6:]
 
 		// Print the received message
-		log.Logger.Infof("Received message: %s\n", message)
+		log.Logger.Infof("Received  module: %d, method %d, messageBody: %s\n", header.ModuleID, header.MethodID, messageBody)
 
-		msg := &Message{}
-		if err := json.Unmarshal(message, msg); err != nil {
-			log.Logger.Error("消息格式错误")
-		}
-
-		switch true {
-		case msg.Code == 0:
-			// 登录
-			_, err = web.login(msg)
-			if err != nil {
-				log.Logger.Error(err)
-				break
-			}
-			fmt.Printf("23434 %s ,%+v \n", web.process.Name(), web.process.Info())
-
-		case msg.Code == 1:
-			// 注销
-			//sta := state.NewStateModel(msg.Account)
-			//store, err := sta.GetAllState(web.DB)
-			//if err != nil {
-			//	log.Logger.Error(err)
-			//}
-			//name := fmt.Sprintf("player_remote_%d", store.PlayerId)
-
-			//module := int32(binary.BigEndian.Uint16(buf[n.Packet : n.Packet+2]))
-			//method := int32(binary.BigEndian.Uint16(buf[n.Packet+2 : n.Packet+4]))
-
-			// todo: rand a gamer node
-			err = web.process.Cast(gen.ProcessID{Name: "", Node: "Gamer@localhost"}, etf.Tuple{1000, 1001, message})
-			if err != nil {
-				log.Logger.Infof("callerr %+v", err)
-				break
-			}
-			//err = sta.ClearState(web.DB)
-		case msg.Code > 1:
-			name := fmt.Sprintf("player_remote_%d", msg.Account)
-
-			// todo: rand a gamer node
-			err := web.process.Cast(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, msg)
-			if err != nil {
-				log.Logger.Infof("callerr %+v", err)
-				break
-			}
-		default:
-			break
-		}
+		//switch true {
+		//case msg.Code == 0:
+		//	// 登录
+		//	_, err = web.login(msg)
+		//	if err != nil {
+		//		log.Logger.Error(err)
+		//		break
+		//	}
+		//	fmt.Printf("23434 %s ,%+v \n", web.process.Name(), web.process.Info())
+		//
+		//case msg.Code == 1:
+		//	// 注销
+		//	//sta := state.NewStateModel(msg.Account)
+		//	//store, err := sta.GetAllState(web.DB)
+		//	//if err != nil {
+		//	//	log.Logger.Error(err)
+		//	//}
+		//	//name := fmt.Sprintf("player_remote_%d", store.PlayerId)
+		//
+		//	//module := int32(binary.BigEndian.Uint16(buf[n.Packet : n.Packet+2]))
+		//	//method := int32(binary.BigEndian.Uint16(buf[n.Packet+2 : n.Packet+4]))
+		//
+		//	// todo: rand a gamer node
+		//	err = web.process.Cast(gen.ProcessID{Name: "", Node: "Gamer@localhost"}, etf.Tuple{1000, 1001, message})
+		//	if err != nil {
+		//		log.Logger.Infof("callerr %+v", err)
+		//		break
+		//	}
+		//	//err = sta.ClearState(web.DB)
+		//case msg.Code > 1:
+		//	name := fmt.Sprintf("player_remote_%d", msg.Account)
+		//
+		//	// todo: rand a gamer node
+		//	err := web.process.Cast(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, msg)
+		//	if err != nil {
+		//		log.Logger.Infof("callerr %+v", err)
+		//		break
+		//	}
+		//default:
+		//	break
+		//}
 
 		select {
 		case buf := <-web.sendChan:
@@ -195,6 +215,62 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 			fmt.Println("Error writing message:", err)
 			break
 		}
+	}
+}
+func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println("Error upgrading connection:", err)
+		return
+	}
+	defer conn.Close()
+
+	for {
+		messageType, p, err := conn.ReadMessage()
+		if err != nil {
+			fmt.Println("Error reading message:", err)
+			return
+		}
+
+		if messageType != websocket.BinaryMessage {
+			fmt.Println("Unexpected message type")
+			continue
+		}
+
+		var length uint16
+		err = binary.Read(bytes.NewReader(p[:2]), binary.LittleEndian, &length)
+		if err != nil {
+			log.Logger.Error("Error reading length:", err)
+		}
+
+		fmt.Printf("length %d \n", length)
+
+		var moduleID uint16
+		err = binary.Read(bytes.NewReader(p[2:4]), binary.LittleEndian, &moduleID)
+		if err != nil {
+			log.Logger.Error("Error reading module ID:", err)
+		}
+
+		fmt.Printf("moduleID %d \n", moduleID)
+
+		var methodID uint16
+		err = binary.Read(bytes.NewReader(p[4:6]), binary.LittleEndian, &methodID)
+		if err != nil {
+			log.Logger.Error("Error reading method ID:", err)
+		}
+
+		fmt.Printf("methodID %d \n", methodID)
+
+		if err != nil {
+
+		}
+
+		// 读取消息体
+		messageBody := p[6:]
+		fmt.Println("Received message body:", string(messageBody))
+
+		// 在这里根据模块ID和方法ID处理消息体
+		// 例如，你可以使用一个 switch 语句来根据模块ID和方法ID执行不同的操作
 	}
 }
 

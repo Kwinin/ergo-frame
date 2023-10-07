@@ -12,8 +12,8 @@ import (
 type GateGenServer struct {
 	common.GbVar
 	gen.Server
-	SendChan     chan []byte
-	clientHander GateGenHanderInterface
+	SendChan      chan []byte
+	clientHandler GateGenHandlerInterface
 }
 
 func (gateGS *GateGenServer) Init(process *gen.ServerProcess, args ...etf.Term) error {
@@ -78,5 +78,5 @@ func (gateGS *GateGenServer) HandleInfo(process *gen.ServerProcess, message etf.
 // Terminate called when process died
 func (gateGS *GateGenServer) Terminate(process *gen.ServerProcess, reason string) {
 	log.Logger.Infof("Terminate (%v): %v", process.Name(), reason)
-	gateGS.clientHander.Terminate(reason)
+	gateGS.clientHandler.Terminate(reason)
 }

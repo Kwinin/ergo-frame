@@ -39,7 +39,6 @@ func (r *rootHandler) login(process *gen.WebHandlerProcess, msg *Message) {
 
 	gotPid, err := process.RemoteSpawn("Gamer@localhost", "player_remote", opts, msg.Account, msg.Data)
 	if err != nil {
-		fmt.Println(222)
 		log.Logger.Error(err)
 	}
 	log.Logger.Infof("OK selfName: %s, selfId %s, returnId %d,%s", process.Name(), process.Self(), gotPid.ID, gotPid.Node)
