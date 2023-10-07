@@ -8,12 +8,12 @@ enum MSG_ACCOUNT {
     PLACEHOLDER =0;  //占位
     
     //账号模块
-    Module  = 1000;
+    MODULE  = 1000;
     
     //method
-    Login = 1001;//用户登陆
-    Register= 1002;//注册账号
-    CreateRole= 1003;//创建角色     
+    LOGIN = 1001;//用户登陆
+    REGISTER= 1002;//注册账号
+    CREATE_ROLE= 1003;//创建角色
 
 }
 

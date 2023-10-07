@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WebSocket Custom Protobuf Client</title>
+</head>
+<body>
+<input type="text" id="accountInput" placeholder="Enter account">
+<input type="password" id="passwordInput" placeholder="Enter password">
+<input type="text" id="dataInput" placeholder="Enter data">
+<input type="number" id="codeInput" placeholder="Enter code">
+<button onclick="sendMessage()">Send Message</button>
+<div id="response"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/protobufjs/6.11.5/protobuf.js"></script>
+<script>
+  // 导入protobuf定义
+  protobuf.load("account.proto", function (err, root) {
+    if (err) throw err;
+
+    // 获取消息类型
+    var c2s_Login = root.lookupType("account.c2s_Login");
+    var CustomResponse = root.lookupType("account.CustomResponse");
+
+    // 创建WebSocket连接
+    var socket = new WebSocket("wss://127.0.0.1:8080/ws");
+
+    socket.onopen = function () {
+      console.log("WebSocket connection opened");
+    };
+
+    socket.onmessage = function (event) {
+      console.log("Received response");
+
+      // 解析protobuf响应
+      var response = CustomResponse.decode(new Uint8Array(event.data));
+      var responseMessage = response.message;
+
+      // 显示响应消息
+      var responseDiv = document.getElementById("response");
+      responseDiv.innerHTML = "Server response: " + responseMessage;
+    };
+
+    socket.onerror = function (error) {
+      console.error("WebSocket error:", error);
+    };
+
+    socket.onclose = function () {
+      console.log("WebSocket connection closed");
+    };
+
+    function sendMessage() {
+      var accountInput = document.getElementById("accountInput");
+      var passwordInput = document.getElementById("passwordInput");
+      var dataInput = document.getElementById("dataInput");
+      var codeInput = document.getElementById("codeInput");
+
+      // 获取输入值
+      var account = accountInput.value;
+      var password = passwordInput.value;
+      var data = dataInput.value;
+      var code = parseInt(codeInput.value);
+
+      // 创建protobuf消息
+      var request = c2s_Login.create({
+        account: account,
+        password: password,
+        data: data,
+        code: code
+      });
+      var buffer = c2s_Login.encode(request).finish();
+
+      // 发送protobuf消息
+      socket.send(buffer);
+    }
+  });
+</script>
+</body>
+</html>

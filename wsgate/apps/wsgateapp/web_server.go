@@ -1,6 +1,7 @@
 package wsgateapp
 
 import (
+	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
@@ -8,25 +9,29 @@ import (
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/lib"
 	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
 	"net/http"
-	"wsgate/apps/wsgateapp/state"
 	"wsgate/common"
 	"wsgate/config"
 	"wsgate/log"
 )
 
 func createWebActor(gbVar common.GbVar) gen.ServerBehavior {
-	return &webServer{GbVar: common.GbVar{
-		NodeName: gbVar.NodeName,
-		Cfg:      gbVar.Cfg,
-		DB:       gbVar.DB,
-	}}
+	return &webServer{
+		GbVar: common.GbVar{
+			NodeName: gbVar.NodeName,
+			Cfg:      gbVar.Cfg,
+			DB:       gbVar.DB,
+		},
+		sendChan: make(chan []byte, 1),
+	}
 }
 
 type webServer struct {
 	gen.Web
 	common.GbVar
-	process *gen.WebProcess
+	process  *gen.WebProcess
+	sendChan chan []byte
 }
 
 func (web *webServer) InitWeb(process *gen.WebProcess, args ...etf.Term) (gen.WebOptions, error) {
@@ -60,6 +65,47 @@ func (web *webServer) InitWeb(process *gen.WebProcess, args ...etf.Term) (gen.We
 	return options, nil
 }
 
+func (web *webServer) HandleWebCall(process *gen.WebProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
+	log.Logger.Infof("HandleWebCall: unhandled message (from %#v) %#v", from, message)
+	return etf.Atom("ok"), gen.ServerStatusOK
+}
+
+// HandleWebCast
+func (web *webServer) HandleWebCast(process *gen.WebProcess, message etf.Term) gen.ServerStatus {
+	log.Logger.Infof("HandleWebCast: 1111 unhandled message %#v", message)
+
+	switch info := message.(type) {
+	case etf.Atom:
+		switch info {
+		case "SocketStop":
+			return gen.ServerStatusStopWithReason("stop normal")
+		case "timeloop":
+			logrus.Debug("time loop")
+		}
+		fmt.Println(233, info)
+		web.sendChan <- []byte(info)
+
+	case etf.Tuple:
+		fmt.Println(2331)
+
+		//module := info[0].(int32)
+		//method := info[1].(int32)
+		//buf := info[2].([]byte)
+
+	case []byte:
+		fmt.Println(2333)
+
+		logrus.Debug("[]byte:", info)
+	}
+	return gen.ServerStatusOK
+}
+
+// HandleWebInfo
+func (web *webServer) HandleWebInfo(process *gen.WebProcess, message etf.Term) gen.ServerStatus {
+	log.Logger.Infof("HandleWebInfo: unhandled message %#v", message)
+	return gen.ServerStatusOK
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -73,6 +119,10 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 		return
 	}
 	defer conn.Close()
+
+	sendctx, sendcancelFunc := context.WithCancel(context.Background())
+	defer sendcancelFunc()
+
 	for {
 		// Read message from the client
 		_, message, err := conn.ReadMessage()
@@ -89,51 +139,58 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 			log.Logger.Error("消息格式错误")
 		}
 
-		response := "This is the server response."
 		switch true {
 		case msg.Code == 0:
 			// 登录
-			response, err = web.login(msg)
+			_, err = web.login(msg)
 			if err != nil {
 				log.Logger.Error(err)
+				break
 			}
+			fmt.Printf("23434 %s ,%+v \n", web.process.Name(), web.process.Info())
 
 		case msg.Code == 1:
 			// 注销
-			sta := state.NewStateModel(msg.Account)
-			store, err := sta.GetAllState(web.DB)
-			if err != nil {
-				log.Logger.Error(err)
-			}
-			name := fmt.Sprintf("player_remote_%d", store.PlayerId)
+			//sta := state.NewStateModel(msg.Account)
+			//store, err := sta.GetAllState(web.DB)
+			//if err != nil {
+			//	log.Logger.Error(err)
+			//}
+			//name := fmt.Sprintf("player_remote_%d", store.PlayerId)
+
+			//module := int32(binary.BigEndian.Uint16(buf[n.Packet : n.Packet+2]))
+			//method := int32(binary.BigEndian.Uint16(buf[n.Packet+2 : n.Packet+4]))
 
 			// todo: rand a gamer node
-			res, err := web.process.Call(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, msg)
+			err = web.process.Cast(gen.ProcessID{Name: "", Node: "Gamer@localhost"}, etf.Tuple{1000, 1001, message})
 			if err != nil {
 				log.Logger.Infof("callerr %+v", err)
-				return
+				break
 			}
-			err = sta.ClearState(web.DB)
-			response = fmt.Sprintf("user process: %s: account: %d exited", name, res)
+			//err = sta.ClearState(web.DB)
 		case msg.Code > 1:
 			name := fmt.Sprintf("player_remote_%d", msg.Account)
 
 			// todo: rand a gamer node
-			res, err := web.process.Call(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, msg)
+			err := web.process.Cast(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, msg)
 			if err != nil {
 				log.Logger.Infof("callerr %+v", err)
-				return
+				break
 			}
-			response = fmt.Sprintf("successful  %+v", res)
-
 		default:
-			response = fmt.Sprintf("unknown code %d", msg.Code)
-
+			break
 		}
 
-		// Send a response back to the client
-
-		err = conn.WriteMessage(websocket.TextMessage, []byte(response))
+		select {
+		case buf := <-web.sendChan:
+			err := conn.WriteMessage(websocket.BinaryMessage, buf)
+			if err != nil {
+				fmt.Println(111, err)
+				break
+			}
+		case <-sendctx.Done():
+			break
+		}
 		if err != nil {
 			fmt.Println("Error writing message:", err)
 			break
@@ -152,16 +209,17 @@ func (web *webServer) login(msg *Message) (string, error) {
 
 	opts := gen.RemoteSpawnOptions{
 		Name: fmt.Sprintf("player_remote_%d", msg.Account),
+		//Name: "player_remote",
 	}
-	sta := state.NewStateModel(msg.Account)
-	sta.PlayerId = msg.Account
-	store, err := sta.GetAllState(web.DB)
-	if err != nil {
-		return "", err
-	}
-	if store.Pid != "" || store.Status == common.RoleStatusLogin {
-		return "disable repeat login", nil
-	}
+	//sta := state.NewStateModel(msg.Account)
+	//sta.PlayerId = msg.Account
+	//store, err := sta.GetAllState(web.DB)
+	//if err != nil {
+	//	return "", err
+	//}
+	//if store.Pid != "" || store.Status == common.RoleStatusLogin {
+	//	return "disable repeat login", nil
+	//}
 
 	// todo : rand a gamer node
 	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, msg)
@@ -169,12 +227,12 @@ func (web *webServer) login(msg *Message) (string, error) {
 		return "", err
 	}
 
-	log.Logger.Infof("OK selfName: %s, selfId %s, returnId %d,%s,%s", web.process.Name(), web.process.Self(), gotPid.ID, gotPid.Node, gotPid.String())
+	log.Logger.Infof("OK selfName: %s, selfId %s, returnRemoteId %d,%s,%s", web.process.Name(), web.process.Self(), gotPid.ID, gotPid.Node, gotPid.String())
 	log.Logger.Infof("msg %+v", msg)
 
-	sta.Pid = gotPid.String()
-	sta.PlayerId = msg.Account
-	sta.Status = common.RoleStatusLogin
-	sta.AddState(web.DB)
+	//sta.Pid = gotPid.String()
+	//sta.PlayerId = msg.Account
+	//sta.Status = common.RoleStatusLogin
+	//sta.AddState(web.DB)
 	return "login successful", nil
 }

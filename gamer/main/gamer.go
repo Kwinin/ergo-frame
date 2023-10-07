@@ -10,6 +10,7 @@ import (
 	"gamer/db"
 	"gamer/log"
 	"github.com/ergo-services/ergo"
+	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
 	"time"
@@ -56,7 +57,14 @@ func main() {
 	if err != nil {
 		log.Logger.Error(err)
 	}
-	err = GamerNode.ProvideRemoteSpawn("player_remote", &player.Actor{GbVar: gbVar})
+	sendChan := make(chan []byte, 1)
+
+	err = GamerNode.ProvideRemoteSpawn("player_remote", &player.GateGenServer{
+		GbVar:    common.GbVar{},
+		SendChan: sendChan,
+	})
+
+	p := GamerNode.ProcessByName("playeractor")
 	if err != nil {
 		log.Logger.Error(err)
 
@@ -83,6 +91,14 @@ func main() {
 		}
 	}()
 
-	GamerNode.Wait()
+	for {
+		select {
+		case buf := <-sendChan:
+			err := p.Send(gen.ProcessID{Name: "web", Node: "WsGate@localhost"}, etf.Term(etf.Tuple{etf.Atom("$gen_cast"), etf.Atom(buf)}))
+			if err != nil {
+				log.Logger.Error(err)
+			}
+		}
+	}
 
 }

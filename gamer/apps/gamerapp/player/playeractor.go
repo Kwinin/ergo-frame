@@ -2,12 +2,10 @@ package player
 
 import (
 	"fmt"
-	"gamer/apps/gamerapp/lib"
 	"gamer/common"
 	"gamer/log"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
-	"strings"
 	"time"
 )
 
@@ -40,23 +38,20 @@ func (s *Actor) LaunchPid(PlayerId, ServerId int) {
 // Init invoked on a start this process.
 func (s *Actor) Init(process *gen.ServerProcess, args ...etf.Term) error {
 	log.Logger.Infof("Init Player process: %s with name %q and args %+v \n", process.Self(), process.Name(), args)
-	if strings.Contains(process.Name(), "player_remote") {
-		role := lib.RoleLib{}
-		OnLogin()
-
-		msg := &Message{}
-		if err := etf.TermIntoStruct(args[0], msg); err != nil {
-			log.Logger.Errorf("TermIntoStruct: %+v \n", err)
-		}
-		log.Logger.Infof("arg :  %+v, %+v \n", args[0], msg)
-
-		server := &Server{GbVar: common.GbVar{
-			NodeName: s.NodeName,
-			Cfg:      s.Cfg,
-			DB:       s.DB}}
-		role.LaunchRolePid(process, lib.RoleTag{Tag: "player", RoleId: msg.Account}, server, 222, 343)
-
-	}
+	//if strings.Contains(process.Name(), "player_remote") {
+	//	//role := lib.RoleLib{}
+	//	OnLogin()
+	//
+	//	msg := &Message{}
+	//	if err := etf.TermIntoStruct(args[0], msg); err != nil {
+	//		log.Logger.Errorf("TermIntoStruct: %+v \n", err)
+	//	}
+	//	log.Logger.Infof("arg :  %+v, %+v \n", args[0], msg)
+	//
+	//	//server := &GateGenServer{}
+	//	//role.LaunchRolePid(process, lib.RoleTag{Tag: "player", RoleId: msg.Account}, server, 222, 343)
+	//
+	//}
 	return nil
 }
 
@@ -116,14 +111,13 @@ func (s *Actor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, mess
 		//	log.Logger.Errorf("p2 Direct %v", err)
 		//}
 
-		server := &Server{GbVar: common.GbVar{
-			NodeName: s.NodeName,
-			Cfg:      s.Cfg,
-			DB:       s.DB}}
-		err := server.Hello(p2)
-		if err != nil {
-			log.Logger.Errorf("p2 Hello %v", err)
-		}
+		//server := &Server{GbVar: common.GbVar{
+		//	NodeName: s.NodeName,
+		//	Cfg:      s.Cfg,
+		//	DB:       s.DB}}
+		//err := server.Hello(p2)
+
+		NewServer()
 
 	}
 

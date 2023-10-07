@@ -1,34 +1,81 @@
 package player
 
 import (
-	"gamer/apps/gamerapp/helper"
+	"fmt"
 	"gamer/apps/gamerapp/player/mod"
 	"gamer/common"
+	"gamer/helper"
 	"gamer/log"
-	"github.com/ergo-services/ergo/etf"
+	pbaccount "gamer/proto/account"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"reflect"
 )
 
 type Server struct {
-	Custom
 	common.GbVar
+	infoFunc map[int]func(buf []byte)
+	sendChan chan []byte
 }
 
-func (md *Server) InitCustom(process *CustomProcess, args ...etf.Term) error {
-	log.Logger.Infof("Started instance of MyCustom with PID %s and args %v\n", process.Self(), args)
-	md.LoopMod()
+func NewServer() *Server {
+	client := &Server{}
+	client.initMsgRoute()
+	return client
+}
+
+func (c *Server) initMsgRoute() {
+	attr := mod.Attr{}
+	//消息注册
+	c.infoFunc = make(map[int]func(buf []byte))
+	//账号
+	c.infoFunc[int(pbaccount.MSG_ACCOUNT_LOGIN)] = createRegisterFunc(c.accountLogin)
+	c.infoFunc[int(pbaccount.MSG_ACCOUNT_REGISTER)] = createRegisterFunc(attr.AccountLogin)
+	c.infoFunc[int(pbaccount.MSG_ACCOUNT_CREATE_ROLE)] = createRegisterFunc(c.accountLogin)
+
+}
+
+func (c *Server) accountLogin(msg *pbaccount.C2S_Login) {
+
+	fmt.Println(1111, msg.Account, msg.Password)
+
+}
+
+func (s *Server) SendToClient(module int32, method int32, pb proto.Message) {
+	//logrus.Debugf("client send msg [%v] [%v] [%v]", module, method, pb)
+	data, err := proto.Marshal(pb)
+	if err != nil {
+		logrus.Errorf("proto encode error[%v] [%v][%v] [%v]", err.Error(), module, method, pb)
+		return
+	}
+
+	mldulebuf := helper.IntToBytes(module, 2)
+	methodbuf := helper.IntToBytes(method, 2)
+	s.sendChan <- helper.BytesCombine(mldulebuf, methodbuf, data)
+}
+
+// ==========msg register =======
+// 消息注册
+func createRegisterFunc[T any](execfunc func(*T)) func(buf []byte) {
+	return func(buf []byte) {
+		info := new(T)
+		err := decodeProto(info, buf)
+		if err != nil {
+			logrus.Errorf("decode error[%v]", err.Error())
+		} else {
+			//logrus.Debugf("client msg:[%v] [%v]", info, tools.GoID())
+			execfunc(info)
+		}
+	}
+}
+
+// protobuf 解码
+func decodeProto(info interface{}, buf []byte) error {
+	if data, ok := info.(protoreflect.ProtoMessage); ok {
+		return proto.Unmarshal(buf, data)
+	}
 	return nil
-}
-
-func (md *Server) HandleHello(process *CustomProcess) CustomStatus {
-	log.Logger.Info("got Hello")
-	return CustomStatusOK
-}
-
-func (md *Server) HandleCustomDirect(process *CustomProcess, message interface{}) (interface{}, error) {
-	log.Logger.Info("Say hi to increase counter twice")
-	process.Hi()
-	return nil, nil
 }
 
 type ModInf interface {
