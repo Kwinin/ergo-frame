@@ -26,17 +26,14 @@ func NewServer() *Server {
 }
 
 func (c *Server) initMsgRoute() {
-	attr := mod.Attr{}
 	//消息注册
 	c.infoFunc = make(map[int]func(buf []byte))
 	//账号
 	c.infoFunc[int(pbaccount.MSG_ACCOUNT_LOGIN)] = createRegisterFunc(c.accountLogin)
-	c.infoFunc[int(pbaccount.MSG_ACCOUNT_REGISTER)] = createRegisterFunc(attr.AccountLogin)
-	c.infoFunc[int(pbaccount.MSG_ACCOUNT_CREATE_ROLE)] = createRegisterFunc(c.accountLogin)
 
 }
 
-func (c *Server) accountLogin(msg *pbaccount.C2S_Login) {
+func (c *Server) accountLogin(msg *pbaccount.Msg_1001Req) {
 
 	fmt.Println(1111, msg.Account, msg.Password)
 

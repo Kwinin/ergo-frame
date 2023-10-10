@@ -94,7 +94,7 @@ func main() {
 	for {
 		select {
 		case buf := <-sendChan:
-			err := p.Send(gen.ProcessID{Name: "web", Node: "WsGate@localhost"}, etf.Term(etf.Tuple{etf.Atom("$gen_cast"), etf.Atom(buf)}))
+			err := p.Send(gen.ProcessID{Name: "web", Node: "WsGate@localhost"}, etf.Term(etf.Tuple{etf.Atom("$gen_cast"), buf}))
 			if err != nil {
 				log.Logger.Error(err)
 			}

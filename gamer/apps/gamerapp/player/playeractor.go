@@ -117,7 +117,7 @@ func (s *Actor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, mess
 		//	DB:       s.DB}}
 		//err := server.Hello(p2)
 
-		NewServer()
+		//NewServer()
 
 	}
 

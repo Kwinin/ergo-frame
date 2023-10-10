@@ -11,10 +11,12 @@ import (
 	"github.com/ergo-services/ergo/lib"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
 	"net/http"
 	"wsgate/common"
 	"wsgate/config"
 	"wsgate/log"
+	pbAccount "wsgate/proto/account"
 )
 
 func createWebActor(gbVar common.GbVar) gen.ServerBehavior {
@@ -88,14 +90,16 @@ func (web *webServer) HandleWebCast(process *gen.WebProcess, message etf.Term) g
 
 	case etf.Tuple:
 		fmt.Println(2331)
-
 		//module := info[0].(int32)
 		//method := info[1].(int32)
 		//buf := info[2].([]byte)
-	case []byte:
-		fmt.Println(2333)
+		//web.sendChan <- []byte(info)
 
-		logrus.Debug("[]byte:", info)
+	case []byte:
+		fmt.Println(233, info)
+		web.sendChan <- info
+	default:
+		fmt.Println(32343, info)
 	}
 	return gen.ServerStatusOK
 }
@@ -124,8 +128,6 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 	}
 	defer conn.Close()
 
-	sendctx, sendcancelFunc := context.WithCancel(context.Background())
-	defer sendcancelFunc()
 	// 读取消息头
 	var header struct {
 		Length   uint16
@@ -201,8 +203,93 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 		//	break
 		//}
 
+	}
+}
+func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println("Error upgrading connection:", err)
+		return
+	}
+	defer conn.Close()
+
+	sendctx, sendcancelFunc := context.WithCancel(context.Background())
+	defer sendcancelFunc()
+
+	var header struct {
+		Length   uint16
+		ModuleID uint16
+		MethodID uint16
+	}
+
+	for {
+		messageType, p, err := conn.ReadMessage()
+		if err != nil {
+			fmt.Println("Error reading message:", err)
+			return
+		}
+
+		if messageType != websocket.BinaryMessage {
+			fmt.Println("Unexpected message type")
+			continue
+		}
+
+		err = binary.Read(bytes.NewReader(p[:6]), binary.LittleEndian, &header)
+		if err != nil {
+			log.Logger.Error("Error reading message header:", err)
+
+		}
+
+		log.Logger.Infof("length: %d, moduleId: %d, methodId: %d", header.Length, header.ModuleID, header.MethodID)
+		//
+		//var length uint16
+		//err = binary.Read(bytes.NewReader(p[:2]), binary.LittleEndian, &length)
+		//if err != nil {
+		//	log.Logger.Error("Error reading length:", err)
+		//}
+		//
+		//fmt.Printf("length %d \n", length)
+		//
+		//var moduleID uint16
+		//err = binary.Read(bytes.NewReader(p[2:4]), binary.LittleEndian, &moduleID)
+		//if err != nil {
+		//	log.Logger.Error("Error reading module ID:", err)
+		//}
+		//
+		//fmt.Printf("moduleID %d \n", moduleID)
+		//
+		//var methodID uint16
+		//err = binary.Read(bytes.NewReader(p[4:6]), binary.LittleEndian, &methodID)
+		//if err != nil {
+		//	log.Logger.Error("Error reading method ID:", err)
+		//}
+		//
+		//fmt.Printf("methodID %d \n", methodID)
+		switch true {
+		// 登录特殊处理
+		case header.ModuleID+header.MethodID == uint16(pbAccount.MSG_ACCOUNT_MODULE+pbAccount.MSG_ACCOUNT_LOGIN):
+			// 读取消息体
+			messageBody := p[6:]
+			loginMsg := &pbAccount.Msg_1001Req{}
+			err := proto.Unmarshal(messageBody, loginMsg)
+			if err != nil {
+				log.Logger.Error(err)
+				break
+			}
+			log.Logger.Infof("messageBody: %+v", loginMsg)
+			_, err = web.login(loginMsg.Account)
+			if err != nil {
+				log.Logger.Error(err)
+				break
+			}
+			fmt.Printf("23434 %s ,%+v \n", web.process.Name(), web.process.Info())
+		default:
+
+		}
+
 		select {
 		case buf := <-web.sendChan:
+			fmt.Println(6666, buf, buf[4:], string(buf[4:]))
 			err := conn.WriteMessage(websocket.BinaryMessage, buf)
 			if err != nil {
 				fmt.Println(111, err)
@@ -217,74 +304,11 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 		}
 	}
 }
-func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		fmt.Println("Error upgrading connection:", err)
-		return
-	}
-	defer conn.Close()
 
-	for {
-		messageType, p, err := conn.ReadMessage()
-		if err != nil {
-			fmt.Println("Error reading message:", err)
-			return
-		}
-
-		if messageType != websocket.BinaryMessage {
-			fmt.Println("Unexpected message type")
-			continue
-		}
-
-		var length uint16
-		err = binary.Read(bytes.NewReader(p[:2]), binary.LittleEndian, &length)
-		if err != nil {
-			log.Logger.Error("Error reading length:", err)
-		}
-
-		fmt.Printf("length %d \n", length)
-
-		var moduleID uint16
-		err = binary.Read(bytes.NewReader(p[2:4]), binary.LittleEndian, &moduleID)
-		if err != nil {
-			log.Logger.Error("Error reading module ID:", err)
-		}
-
-		fmt.Printf("moduleID %d \n", moduleID)
-
-		var methodID uint16
-		err = binary.Read(bytes.NewReader(p[4:6]), binary.LittleEndian, &methodID)
-		if err != nil {
-			log.Logger.Error("Error reading method ID:", err)
-		}
-
-		fmt.Printf("methodID %d \n", methodID)
-
-		if err != nil {
-
-		}
-
-		// 读取消息体
-		messageBody := p[6:]
-		fmt.Println("Received message body:", string(messageBody))
-
-		// 在这里根据模块ID和方法ID处理消息体
-		// 例如，你可以使用一个 switch 语句来根据模块ID和方法ID执行不同的操作
-	}
-}
-
-type Message struct {
-	Account  int    `json:"account"`
-	Password string `json:"password"`
-	Data     string `json:"data"`
-	Code     int    `json:"code"`
-}
-
-func (web *webServer) login(msg *Message) (string, error) {
+func (web *webServer) login(account string) (string, error) {
 
 	opts := gen.RemoteSpawnOptions{
-		Name: fmt.Sprintf("player_remote_%d", msg.Account),
+		Name: fmt.Sprintf("player_remote_%s", account),
 		//Name: "player_remote",
 	}
 	//sta := state.NewStateModel(msg.Account)
@@ -298,13 +322,12 @@ func (web *webServer) login(msg *Message) (string, error) {
 	//}
 
 	// todo : rand a gamer node
-	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, msg)
+	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, account)
 	if err != nil {
 		return "", err
 	}
 
 	log.Logger.Infof("OK selfName: %s, selfId %s, returnRemoteId %d,%s,%s", web.process.Name(), web.process.Self(), gotPid.ID, gotPid.Node, gotPid.String())
-	log.Logger.Infof("msg %+v", msg)
 
 	//sta.Pid = gotPid.String()
 	//sta.PlayerId = msg.Account

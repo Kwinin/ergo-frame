@@ -2,7 +2,11 @@ package player
 
 import (
 	"gamer/common"
+	"gamer/helper"
 	"gamer/log"
+	pbAccount "gamer/proto/account"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
 	"time"
 
 	"github.com/ergo-services/ergo/etf"
@@ -68,7 +72,8 @@ func (gateGS *GateGenServer) HandleInfo(process *gen.ServerProcess, message etf.
 	case etf.Atom:
 		switch info {
 		case "login":
-			gateGS.SendChan <- []byte("send msg login ")
+			//gateGS.SendChan <- []byte("send msg login ")
+			gateGS.SendToClient(int32(pbAccount.MSG_ACCOUNT_MODULE), int32(pbAccount.MSG_ACCOUNT_LOGIN), &pbAccount.Msg_1001Rsp{Code: 1, Data: "ok"})
 		}
 	}
 
@@ -79,4 +84,17 @@ func (gateGS *GateGenServer) HandleInfo(process *gen.ServerProcess, message etf.
 func (gateGS *GateGenServer) Terminate(process *gen.ServerProcess, reason string) {
 	log.Logger.Infof("Terminate (%v): %v", process.Name(), reason)
 	gateGS.clientHandler.Terminate(reason)
+}
+
+func (gateGS *GateGenServer) SendToClient(module int32, method int32, pb proto.Message) {
+	//logrus.Debugf("client send msg [%v] [%v] [%v]", module, method, pb)
+	data, err := proto.Marshal(pb)
+	if err != nil {
+		logrus.Errorf("proto encode error[%v] [%v][%v] [%v]", err.Error(), module, method, pb)
+		return
+	}
+
+	moduleBuf := helper.IntToBytes(module, 2)
+	methodBuf := helper.IntToBytes(method, 2)
+	gateGS.SendChan <- helper.BytesCombine(moduleBuf, methodBuf, data)
 }

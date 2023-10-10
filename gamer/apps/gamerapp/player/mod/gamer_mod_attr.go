@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"gamer/common"
 	"gamer/log"
-	pbaccount "gamer/proto/account"
 	"runtime"
 	"time"
 )
@@ -29,10 +28,4 @@ func (a Attr) OnDate() string {
 
 func (a Attr) OnMessage(Id int) string {
 	return fmt.Sprintf("use id :%d", Id)
-}
-
-func (c *Attr) AccountLogin(msg *pbaccount.C2S_Login) {
-
-	fmt.Println(2222, msg.Account, msg.Password)
-
 }

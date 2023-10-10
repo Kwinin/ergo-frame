@@ -11,3 +11,4 @@ releaser:
 
 protobuf:
 	cd gamer &&  protoc --go_out=. --proto_path=./proto ./proto/*.proto
+	cd wsgate &&  protoc --go_out=. --proto_path=./proto ./proto/*.proto

@@ -11,11 +11,11 @@ type rootHandler struct {
 	gen.WebHandler
 }
 
-//type Message struct {
-//	Account  string `json:"account"`
-//	Password string `json:"password"`
-//	Data     string `json:"data"`
-//}
+type Message struct {
+	Account  string `json:"account"`
+	Password string `json:"password"`
+	Data     string `json:"data"`
+}
 
 func (r *rootHandler) HandleRequest(process *gen.WebHandlerProcess, request gen.WebMessageRequest) gen.WebHandlerStatus {
 	request.Response.Write([]byte("Hello"))
