@@ -35,7 +35,7 @@ func (c *Server) initMsgRoute() {
 
 func (c *Server) accountLogin(msg *pbaccount.Msg_1001Req) {
 
-	fmt.Println(1111, msg.Account, msg.Password)
+	fmt.Println(1111, msg.Token)
 
 }
 

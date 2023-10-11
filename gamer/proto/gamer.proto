@@ -1,0 +1,37 @@
+syntax = "proto3";
+package gamer;
+option go_package = "./proto/gamer";
+
+//消息号
+enum MSG_GAMER {
+  PLACEHOLDER =0;  //占位
+
+  ATTR_MODULE  = 2100;
+  SHOP_MODULE  = 2200;
+
+  //attr
+  ATTR_INFO = 2101;//用户信息
+
+  //shop
+  SHOP_INFO = 2201; //
+
+}
+
+message Address {
+  string street = 1;
+  string city = 2;
+}
+
+//用户信息
+message msg_2101_req {
+  string nickname =1;
+  string address =2;
+  repeated int32 num = 3;
+}
+
+message msg_2101_rsp {
+  string nickname =1;
+  string address =2;
+  repeated  Address addresses= 3;
+
+}

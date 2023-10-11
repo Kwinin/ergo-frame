@@ -10,16 +10,13 @@ enum MSG_ACCOUNT {
     MODULE  = 1000;
     
     //method
-    LOGIN = 1;//用户登陆
-    REGISTER= 2;//注册账号
-    CREATE_ROLE= 3;//创建角色
+    LOGIN = 1001;//用户登陆
 }
 
 
 //用户登陆
 message msg_1001_req {
-    string account  =1;
-    string password =2;
+    string token =1;
 }
 
 message msg_1001_rsp {

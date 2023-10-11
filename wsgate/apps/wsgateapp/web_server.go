@@ -11,7 +11,6 @@ import (
 	"github.com/ergo-services/ergo/lib"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
-	"google.golang.org/protobuf/proto"
 	"net/http"
 	"wsgate/common"
 	"wsgate/config"
@@ -206,6 +205,7 @@ func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *h
 	}
 }
 func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Error upgrading connection:", err)
@@ -213,13 +213,23 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
+	token := r.Header.Get("Authorization")
+
+	fmt.Printf("343 %+v", r.Header)
+	fmt.Printf("34233 %+v", token)
+	//if token == "" {
+	//	// 未提供令牌，拒绝连接
+	//	w.WriteHeader(http.StatusUnauthorized)
+	//	return
+	//}
+
 	sendctx, sendcancelFunc := context.WithCancel(context.Background())
 	defer sendcancelFunc()
 
 	var header struct {
 		Length   uint16
-		ModuleID uint16
-		MethodID uint16
+		PlayerId uint16
+		MsgID    uint16
 	}
 
 	for {
@@ -240,7 +250,7 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 		}
 
-		log.Logger.Infof("length: %d, moduleId: %d, methodId: %d", header.Length, header.ModuleID, header.MethodID)
+		log.Logger.Infof("length: %d, PlayerId: %d, MsgId: %d", header.Length, header.PlayerId, header.MsgID)
 		//
 		//var length uint16
 		//err = binary.Read(bytes.NewReader(p[:2]), binary.LittleEndian, &length)
@@ -267,24 +277,23 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		//fmt.Printf("methodID %d \n", methodID)
 		switch true {
 		// 登录特殊处理
-		case header.ModuleID+header.MethodID == uint16(pbAccount.MSG_ACCOUNT_MODULE+pbAccount.MSG_ACCOUNT_LOGIN):
+		case header.MsgID == uint16(pbAccount.MSG_ACCOUNT_LOGIN):
 			// 读取消息体
-			messageBody := p[6:]
-			loginMsg := &pbAccount.Msg_1001Req{}
-			err := proto.Unmarshal(messageBody, loginMsg)
-			if err != nil {
-				log.Logger.Error(err)
-				break
-			}
-			log.Logger.Infof("messageBody: %+v", loginMsg)
-			_, err = web.login(loginMsg.Account)
+			log.Logger.Infof("messageBody: %+v", header.PlayerId)
+			_, err = web.login(header.PlayerId)
 			if err != nil {
 				log.Logger.Error(err)
 				break
 			}
 			fmt.Printf("23434 %s ,%+v \n", web.process.Name(), web.process.Info())
 		default:
-
+			// todo: rand a gamer node
+			//err = web.process.Cast(gen.ProcessID{Name: "", Node: "Gamer@localhost"}, etf.Tuple{1000, 1001, message})
+			//if err != nil {
+			//	log.Logger.Infof("callerr %+v", err)
+			//	break
+			//}
+			//err = sta.ClearState(web.DB)
 		}
 
 		select {
@@ -305,10 +314,10 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (web *webServer) login(account string) (string, error) {
+func (web *webServer) login(playerId uint16) (string, error) {
 
 	opts := gen.RemoteSpawnOptions{
-		Name: fmt.Sprintf("player_remote_%s", account),
+		Name: fmt.Sprintf("player_remote_%d", playerId),
 		//Name: "player_remote",
 	}
 	//sta := state.NewStateModel(msg.Account)
@@ -322,7 +331,7 @@ func (web *webServer) login(account string) (string, error) {
 	//}
 
 	// todo : rand a gamer node
-	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, account)
+	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, playerId)
 	if err != nil {
 		return "", err
 	}
