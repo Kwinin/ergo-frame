@@ -75,8 +75,6 @@ func (web *webServer) HandleWebCall(process *gen.WebProcess, from gen.ServerFrom
 
 // HandleWebCast
 func (web *webServer) HandleWebCast(process *gen.WebProcess, message etf.Term) gen.ServerStatus {
-	log.Logger.Infof("HandleWebCast: 1111 unhandled message %#v", message)
-
 	switch info := message.(type) {
 	case etf.Atom:
 		switch info {
@@ -95,7 +93,6 @@ func (web *webServer) HandleWebCast(process *gen.WebProcess, message etf.Term) g
 		//web.sendChan <- []byte(info)
 
 	case []byte:
-		fmt.Println(233, info)
 		web.sendChan <- info
 	default:
 		fmt.Println(32343, info)
@@ -287,18 +284,20 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			}
 			fmt.Printf("23434 %s ,%+v \n", web.process.Name(), web.process.Info())
 		default:
+			messageBody := p[6:]
 			// todo: rand a gamer node
-			//err = web.process.Cast(gen.ProcessID{Name: "", Node: "Gamer@localhost"}, etf.Tuple{1000, 1001, message})
-			//if err != nil {
-			//	log.Logger.Infof("callerr %+v", err)
-			//	break
-			//}
-			//err = sta.ClearState(web.DB)
+			name := fmt.Sprintf("player_remote_%d", header.PlayerId)
+
+			//err := web.process.Send(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, etf.Term(etf.Tuple{etf.Atom("$gen_cast"), etf.Tuple{header.PlayerId, header.MsgID, messageBody}}))
+			err = web.process.Cast(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, etf.Tuple{header.PlayerId, header.MsgID, messageBody})
+			if err != nil {
+				log.Logger.Infof("callerr %+v", err)
+				break
+			}
 		}
 
 		select {
 		case buf := <-web.sendChan:
-			fmt.Println(6666, buf, buf[4:], string(buf[4:]))
 			err := conn.WriteMessage(websocket.BinaryMessage, buf)
 			if err != nil {
 				fmt.Println(111, err)

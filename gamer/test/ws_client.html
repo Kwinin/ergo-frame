@@ -8,8 +8,14 @@
 <body>
 <h1>WebSocket Protobuf Client</h1>
 <button id="connectButton">Connect to WebSocket</button>
+<br>
 <button id="loginButton">Login</button>
 <input type="text" id="accountInput" placeholder="Account">
+</br>
+<br>
+<button id="attrInfoButton">attrInfo</button>
+<input type="text" id="nicknameInput" placeholder="NickName">
+</br>
 <div id="output"></div>
 
 <script>
@@ -80,6 +86,49 @@
       console.log("WebSocket is not open.");
     }
   });
+  document.getElementById("attrInfoButton").addEventListener("click", () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      const accountInput = document.getElementById("accountInput").value;
+      const nicknameInput = document.getElementById("nicknameInput").value;
+
+      const protoFileURL = '../proto/gamer.proto';
+
+      // 使用protobuf.js加载Proto文件
+      protobuf.load(protoFileURL, (err, root) => {
+        if (err) throw err;
+
+        // 获取消息类型
+        const MyMessage = root.lookupType('msg_2101_req');
+        // Create a c2s_Login message
+        const attrInfoMsg = {
+          nickname: nicknameInput.toString(),
+          address: "成华大道",
+          num: [2,23,34],
+        };
+        // 解析二进制数据
+        const msgBuffer = MyMessage.encode(attrInfoMsg).finish();
+        // Create the message header
+        const header = new ArrayBuffer(6);
+        const headerView = new DataView(header);
+        const messageLength = msgBuffer.byteLength + 6; // Length of the message
+        headerView.setUint16(0, messageLength, true); // Set message length (little-endian)
+        headerView.setUint16(2, accountInput , true); // Set player ID (little-endian)
+        headerView.setUint16(4, 2101, true); // Set msg ID (little-endian)
+
+        // Concatenate header and message
+        const c2sLoginData = new Uint8Array(messageLength);
+        c2sLoginData.set(new Uint8Array(header), 0);
+        c2sLoginData.set(new Uint8Array(msgBuffer), 6);
+
+        // Send the message to the server
+        socket.send(c2sLoginData);
+      });
+
+    } else {
+      console.log("WebSocket is not open.");
+    }
+  });
+
 
   // Handle incoming messages
   function handleMessage(data) {
@@ -98,7 +147,19 @@
           addToOutput("moduleId: " + moduleId);
           addToOutput("methodId: " + methodId);
           // handleAccountModule(moduleId, methodId, messageBody)
-          handleAccountProto(moduleId, methodId, messageBody)
+          let protoFileURL = ""
+          switch (moduleId) {
+            case 1000:
+               protoFileURL = '../proto/account.proto';
+              handleDecodeProto(protoFileURL, methodId, messageBody)
+              break;
+            case 2100:
+               protoFileURL = '../proto/gamer.proto';
+              handleDecodeProto(protoFileURL, methodId, messageBody)
+              break;
+            default:
+              console.log("error moduleId", moduleId)
+          }
         } else {
           addToOutput("接收到的数据不包含足够的字节");
         }
@@ -109,27 +170,24 @@
     }
   }
 
-
-  function handleAccountProto(moduleId, methodID, messageBody)  {
-    const protoFileURL = '../proto/account.proto';
+  function handleDecodeProto(protoFileURL, methodID, messageBody)  {
 
     // 使用protobuf.js加载Proto文件
     protobuf.load(protoFileURL, (err, root) => {
       if (err) throw err;
 
       // 获取消息类型
-      const MyMessage = root.lookupType('msg_1001_rsp');
+      const MyMessage = root.lookupType(`msg_${methodID}_rsp`);
       // 解析二进制数据
       const decodedMessage = MyMessage.decode(messageBody);
 
 
       // 打印解析后的消息
       console.log(decodedMessage);
-
-      // 如果需要，可以访问消息字段
-      console.log(`code: ${decodedMessage.code}，data: ${decodedMessage.data}`);
     });
   }
+
+
 
   function addToOutput(message) {
     const outputDiv = document.getElementById("output");

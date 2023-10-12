@@ -1,6 +1,7 @@
 package player
 
 import (
+	"fmt"
 	"gamer/common"
 	"gamer/helper"
 	"gamer/log"
@@ -20,10 +21,16 @@ type GateGenServer struct {
 	clientHandler GateGenHandlerInterface
 }
 
+type GateCastMessage struct {
+	PlayerId int32
+	MsgId    int32
+	Buf      []byte
+}
+
 func (gateGS *GateGenServer) Init(process *gen.ServerProcess, args ...etf.Term) error {
 	log.Logger.Infof("Init (%v,%s): args %v ", process.Name(), process.Self(), args)
-	//gateGS.clientHander = args[1].(GateGenHanderInterface)
-	//gateGS.clientHander.InitHander(process, gateGS.sendChan)
+	gateGS.clientHandler = NewPlayerServer()
+	gateGS.clientHandler.InitHandler(process, gateGS.SendChan)
 
 	process.SendAfter(process.Self(), etf.Atom("login"), time.Second)
 	return nil
@@ -40,6 +47,7 @@ func (gateGS *GateGenServer) HandleCast(process *gen.ServerProcess, message etf.
 	//
 	//switch info := message.(type) {
 	//case etf.Atom:
+	//	fmt.Println(111134)
 	//	switch info {
 	//	case "SocketStop":
 	//		return gen.ServerStatusStopWithReason("stop normal")
@@ -47,15 +55,24 @@ func (gateGS *GateGenServer) HandleCast(process *gen.ServerProcess, message etf.
 	//		log.Logger.Debug("time loop")
 	//	}
 	//case etf.Tuple:
-	//	module := info[0].(int32)
-	//	method := info[1].(int32)
+	//	playerId := info[0].(int32)
+	//	msgId := info[1].(int32)
 	//	buf := info[2].([]byte)
-	//	log.Logger.Infof("module %v ,method %v, arg %v", module, method, buf)
-	//	//gateGS.clientHander.MsgHander(module, method, buf)
-	//	gateGS.SendChan <- []byte("send msg test")
+	//	fmt.Println(11111, playerId, msgId, buf)
+	//	gateGS.clientHandler.MsgHandler(playerId, msgId, buf)
 	//case []byte:
+	//	fmt.Println(11114324)
 	//	log.Logger.Debug("[]byte:", info)
 	//}
+	//fmt.Println(11112)
+
+	msg := &GateCastMessage{}
+	if err := etf.TermIntoStruct(message, msg); err != nil {
+		log.Logger.Errorf("TermIntoStruct: %#v \n", err)
+	}
+
+	fmt.Println(34234, msg.PlayerId, msg.MsgId, msg.Buf)
+	gateGS.clientHandler.MsgHandler(msg.PlayerId, msg.MsgId, msg.Buf)
 	return gen.ServerStatusOK
 }
 
@@ -83,7 +100,6 @@ func (gateGS *GateGenServer) HandleInfo(process *gen.ServerProcess, message etf.
 // Terminate called when process died
 func (gateGS *GateGenServer) Terminate(process *gen.ServerProcess, reason string) {
 	log.Logger.Infof("Terminate (%v): %v", process.Name(), reason)
-	gateGS.clientHandler.Terminate(reason)
 }
 
 func (gateGS *GateGenServer) SendToClient(module int32, method int32, pb proto.Message) {
