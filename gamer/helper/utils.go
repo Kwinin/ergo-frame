@@ -5,6 +5,9 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	"io"
 )
 
@@ -105,4 +108,27 @@ func LengthOf(stream []byte, packet int32) (int32, error) {
 		return 0, errors.New(errstr)
 	}
 
+}
+
+// ==========msg register =======
+// 消息注册
+func CreateRegisterFunc[T any](execfunc func(*T)) func(buf []byte) {
+	return func(buf []byte) {
+		info := new(T)
+		err := decodeProto(info, buf)
+		if err != nil {
+			logrus.Errorf("decode error[%v]", err.Error())
+		} else {
+			//logrus.Debugf("client msg:[%v] [%v]", info, tools.GoID())
+			execfunc(info)
+		}
+	}
+}
+
+// protobuf 解码
+func decodeProto(info interface{}, buf []byte) error {
+	if data, ok := info.(protoreflect.ProtoMessage); ok {
+		return proto.Unmarshal(buf, data)
+	}
+	return nil
 }

@@ -1,11 +1,12 @@
 package player
 
 import (
-	"fmt"
+	"gamer/apps/gamerapp/player/mod"
 	"gamer/common"
 	"gamer/helper"
 	"gamer/log"
 	pbAccount "gamer/proto/account"
+	pbGamer "gamer/proto/gamer"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
 	"time"
@@ -17,20 +18,25 @@ import (
 type GateGenServer struct {
 	common.GbVar
 	gen.Server
-	SendChan      chan []byte
-	clientHandler GateGenHandlerInterface
+	SendChan chan []byte
+	//clientHandler  GateGenHandlerInterface
+	clientHandlers map[int32]GateGenHandlerInterface
 }
 
 type GateCastMessage struct {
 	PlayerId int32
-	MsgId    int32
+	ModuleId int32
+	MethodId int32
 	Buf      []byte
 }
 
 func (gateGS *GateGenServer) Init(process *gen.ServerProcess, args ...etf.Term) error {
 	log.Logger.Infof("Init (%v,%s): args %v ", process.Name(), process.Self(), args)
-	gateGS.clientHandler = NewPlayerServer()
-	gateGS.clientHandler.InitHandler(process, gateGS.SendChan)
+	baseMod := mod.NewBaseMod(gateGS.GbVar, process, gateGS.SendChan)
+	gateGS.clientHandlers = make(map[int32]GateGenHandlerInterface)
+
+	gateGS.clientHandlers[int32(pbGamer.MSG_GAMER_ATTR_MODULE)] = mod.NewAttrMod(gateGS.GbVar, baseMod)
+	gateGS.clientHandlers[int32(pbGamer.MSG_GAMER_SHOP_MODULE)] = mod.NewShopMod(gateGS.GbVar, baseMod)
 
 	process.SendAfter(process.Self(), etf.Atom("login"), time.Second)
 	return nil
@@ -44,35 +50,13 @@ func (gateGS *GateGenServer) HandleCast(process *gen.ServerProcess, message etf.
 	//		log.Logger.Errorf("process:[%v] funcname:[%v] fn:[%v] line:[%v]", process.Name(), runtime.FuncForPC(pc).Name(), fn, line)
 	//	}
 	//}()
-	//
-	//switch info := message.(type) {
-	//case etf.Atom:
-	//	fmt.Println(111134)
-	//	switch info {
-	//	case "SocketStop":
-	//		return gen.ServerStatusStopWithReason("stop normal")
-	//	case "timeloop":
-	//		log.Logger.Debug("time loop")
-	//	}
-	//case etf.Tuple:
-	//	playerId := info[0].(int32)
-	//	msgId := info[1].(int32)
-	//	buf := info[2].([]byte)
-	//	fmt.Println(11111, playerId, msgId, buf)
-	//	gateGS.clientHandler.MsgHandler(playerId, msgId, buf)
-	//case []byte:
-	//	fmt.Println(11114324)
-	//	log.Logger.Debug("[]byte:", info)
-	//}
-	//fmt.Println(11112)
 
 	msg := &GateCastMessage{}
 	if err := etf.TermIntoStruct(message, msg); err != nil {
 		log.Logger.Errorf("TermIntoStruct: %#v \n", err)
 	}
 
-	fmt.Println(34234, msg.PlayerId, msg.MsgId, msg.Buf)
-	gateGS.clientHandler.MsgHandler(msg.PlayerId, msg.MsgId, msg.Buf)
+	gateGS.clientHandlers[msg.ModuleId].MsgHandler(msg.PlayerId, msg.MethodId, msg.Buf)
 	return gen.ServerStatusOK
 }
 

@@ -115,92 +115,92 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *http.Request) {
-	// Upgrade HTTP request to WebSocket connection
-	conn, err := upgrader.Upgrade(writer, r, nil)
-	if err != nil {
-		log.Logger.Error("Error upgrading connection:", err)
-		return
-	}
-	defer conn.Close()
-
-	// 读取消息头
-	var header struct {
-		Length   uint16
-		ModuleID uint16
-		MethodID uint16
-	}
-	for {
-
-		messageType, p, err := conn.ReadMessage()
-		fmt.Println(333, messageType, p, len(p))
-		if err != nil {
-			log.Logger.Error("Error reading message:", err)
-			return
-		}
-
-		if messageType != websocket.BinaryMessage {
-			log.Logger.Error("Unexpected message type")
-			continue
-		}
-
-		err = binary.Read(bytes.NewReader(p[:6]), binary.LittleEndian, &header)
-		if err != nil {
-			log.Logger.Error("Error reading message header:", err)
-
-		}
-		fmt.Println(3434, header.ModuleID, header.MethodID)
-
-		// 读取消息体
-		messageBody := p[6:]
-
-		// Print the received message
-		log.Logger.Infof("Received  module: %d, method %d, messageBody: %s\n", header.ModuleID, header.MethodID, messageBody)
-
-		//switch true {
-		//case msg.Code == 0:
-		//	// 登录
-		//	_, err = web.login(msg)
-		//	if err != nil {
-		//		log.Logger.Error(err)
-		//		break
-		//	}
-		//	fmt.Printf("23434 %s ,%+v \n", web.process.Name(), web.process.Info())
-		//
-		//case msg.Code == 1:
-		//	// 注销
-		//	//sta := state.NewStateModel(msg.Account)
-		//	//store, err := sta.GetAllState(web.DB)
-		//	//if err != nil {
-		//	//	log.Logger.Error(err)
-		//	//}
-		//	//name := fmt.Sprintf("player_remote_%d", store.PlayerId)
-		//
-		//	//module := int32(binary.BigEndian.Uint16(buf[n.Packet : n.Packet+2]))
-		//	//method := int32(binary.BigEndian.Uint16(buf[n.Packet+2 : n.Packet+4]))
-		//
-		//	// todo: rand a gamer node
-		//	err = web.process.Cast(gen.ProcessID{Name: "", Node: "Gamer@localhost"}, etf.Tuple{1000, 1001, message})
-		//	if err != nil {
-		//		log.Logger.Infof("callerr %+v", err)
-		//		break
-		//	}
-		//	//err = sta.ClearState(web.DB)
-		//case msg.Code > 1:
-		//	name := fmt.Sprintf("player_remote_%d", msg.Account)
-		//
-		//	// todo: rand a gamer node
-		//	err := web.process.Cast(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, msg)
-		//	if err != nil {
-		//		log.Logger.Infof("callerr %+v", err)
-		//		break
-		//	}
-		//default:
-		//	break
-		//}
-
-	}
-}
+//	func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *http.Request) {
+//		// Upgrade HTTP request to WebSocket connection
+//		conn, err := upgrader.Upgrade(writer, r, nil)
+//		if err != nil {
+//			log.Logger.Error("Error upgrading connection:", err)
+//			return
+//		}
+//		defer conn.Close()
+//
+//		// 读取消息头
+//		var header struct {
+//			Length   uint16
+//			ModuleID uint16
+//			MethodID uint16
+//		}
+//		for {
+//
+//			messageType, p, err := conn.ReadMessage()
+//			fmt.Println(333, messageType, p, len(p))
+//			if err != nil {
+//				log.Logger.Error("Error reading message:", err)
+//				return
+//			}
+//
+//			if messageType != websocket.BinaryMessage {
+//				log.Logger.Error("Unexpected message type")
+//				continue
+//			}
+//
+//			err = binary.Read(bytes.NewReader(p[:6]), binary.LittleEndian, &header)
+//			if err != nil {
+//				log.Logger.Error("Error reading message header:", err)
+//
+//			}
+//			fmt.Println(3434, header.ModuleID, header.MethodID)
+//
+//			// 读取消息体
+//			messageBody := p[6:]
+//
+//			// Print the received message
+//			log.Logger.Infof("Received  module: %d, method %d, messageBody: %s\n", header.ModuleID, header.MethodID, messageBody)
+//
+//			//switch true {
+//			//case msg.Code == 0:
+//			//	// 登录
+//			//	_, err = web.login(msg)
+//			//	if err != nil {
+//			//		log.Logger.Error(err)
+//			//		break
+//			//	}
+//			//	fmt.Printf("23434 %s ,%+v \n", web.process.Name(), web.process.Info())
+//			//
+//			//case msg.Code == 1:
+//			//	// 注销
+//			//	//sta := state.NewStateModel(msg.Account)
+//			//	//store, err := sta.GetAllState(web.DB)
+//			//	//if err != nil {
+//			//	//	log.Logger.Error(err)
+//			//	//}
+//			//	//name := fmt.Sprintf("player_remote_%d", store.PlayerId)
+//			//
+//			//	//module := int32(binary.BigEndian.Uint16(buf[n.Packet : n.Packet+2]))
+//			//	//method := int32(binary.BigEndian.Uint16(buf[n.Packet+2 : n.Packet+4]))
+//			//
+//			//	// todo: rand a gamer node
+//			//	err = web.process.Cast(gen.ProcessID{Name: "", Node: "Gamer@localhost"}, etf.Tuple{1000, 1001, message})
+//			//	if err != nil {
+//			//		log.Logger.Infof("callerr %+v", err)
+//			//		break
+//			//	}
+//			//	//err = sta.ClearState(web.DB)
+//			//case msg.Code > 1:
+//			//	name := fmt.Sprintf("player_remote_%d", msg.Account)
+//			//
+//			//	// todo: rand a gamer node
+//			//	err := web.process.Cast(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, msg)
+//			//	if err != nil {
+//			//		log.Logger.Infof("callerr %+v", err)
+//			//		break
+//			//	}
+//			//default:
+//			//	break
+//			//}
+//
+//		}
+//	}
 func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	conn, err := upgrader.Upgrade(w, r, nil)
@@ -226,7 +226,8 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	var header struct {
 		Length   uint16
 		PlayerId uint16
-		MsgID    uint16
+		ModuleId uint16
+		MethodID uint16
 	}
 
 	for {
@@ -241,13 +242,13 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		err = binary.Read(bytes.NewReader(p[:6]), binary.LittleEndian, &header)
+		err = binary.Read(bytes.NewReader(p[:8]), binary.LittleEndian, &header)
 		if err != nil {
 			log.Logger.Error("Error reading message header:", err)
 
 		}
 
-		log.Logger.Infof("length: %d, PlayerId: %d, MsgId: %d", header.Length, header.PlayerId, header.MsgID)
+		log.Logger.Infof("length: %d, PlayerId: %d, MoudleId: %d, MethodId: %d", header.Length, header.PlayerId, header.ModuleId, header.MethodID)
 		//
 		//var length uint16
 		//err = binary.Read(bytes.NewReader(p[:2]), binary.LittleEndian, &length)
@@ -274,7 +275,7 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		//fmt.Printf("methodID %d \n", methodID)
 		switch true {
 		// 登录特殊处理
-		case header.MsgID == uint16(pbAccount.MSG_ACCOUNT_LOGIN):
+		case header.MethodID == uint16(pbAccount.MSG_ACCOUNT_LOGIN):
 			// 读取消息体
 			log.Logger.Infof("messageBody: %+v", header.PlayerId)
 			_, err = web.login(header.PlayerId)
@@ -284,12 +285,12 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			}
 			fmt.Printf("23434 %s ,%+v \n", web.process.Name(), web.process.Info())
 		default:
-			messageBody := p[6:]
+			messageBody := p[8:]
 			// todo: rand a gamer node
 			name := fmt.Sprintf("player_remote_%d", header.PlayerId)
 
 			//err := web.process.Send(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, etf.Term(etf.Tuple{etf.Atom("$gen_cast"), etf.Tuple{header.PlayerId, header.MsgID, messageBody}}))
-			err = web.process.Cast(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, etf.Tuple{header.PlayerId, header.MsgID, messageBody})
+			err = web.process.Cast(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, etf.Tuple{header.PlayerId, header.ModuleId, header.MethodID, messageBody})
 			if err != nil {
 				log.Logger.Infof("callerr %+v", err)
 				break
