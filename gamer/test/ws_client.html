@@ -16,6 +16,12 @@
 <button id="attrInfoButton">attrInfo</button>
 <input type="text" id="nicknameInput" placeholder="NickName">
 </br>
+<br>
+<button id="shopInfoButton">attrInfo</button>
+<input type="number" id="itemCodeInput" placeholder="itemCode">
+<input type="text" id="itemNameInput" placeholder="itemName">
+</br>
+
 <div id="output"></div>
 
 <script>
@@ -130,6 +136,51 @@
       console.log("WebSocket is not open.");
     }
   });
+  document.getElementById("shopInfoButton").addEventListener("click", () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      const accountInput = document.getElementById("accountInput").value;
+      const itemCodeInput = document.getElementById("itemCodeInput").value;
+      const itemNameInput = document.getElementById("itemNameInput").value;
+
+      const protoFileURL = '../proto/gamer.proto';
+
+      // 使用protobuf.js加载Proto文件
+      protobuf.load(protoFileURL, (err, root) => {
+        if (err) throw err;
+
+        // 获取消息类型
+        const MyMessage = root.lookupType('msg_2201_req');
+        // Create a c2s_Login message
+        const shopInfoMsg = {
+          itemCode: Number(itemCodeInput),
+          itemName: itemNameInput.toString(),
+        };
+
+        // 解析二进制数据
+        const msgBuffer = MyMessage.encode(shopInfoMsg).finish();
+        // Create the message header
+        const header = new ArrayBuffer(8);
+        const headerView = new DataView(header);
+        const messageLength = msgBuffer.byteLength + 8; // Length of the message
+        headerView.setUint16(0, messageLength, true); // Set message length (little-endian)
+        headerView.setUint16(2, accountInput , true); // Set player ID (little-endian)
+        headerView.setUint16(4, 2200 , true); // Set module ID (little-endian)
+        headerView.setUint16(6, 2201, true); // Set method ID (little-endian)
+
+        // Concatenate header and message
+        const reqData = new Uint8Array(messageLength);
+        reqData.set(new Uint8Array(header), 0);
+        reqData.set(new Uint8Array(msgBuffer), 8);
+
+        // Send the message to the server
+        socket.send(reqData);
+      });
+
+    } else {
+      console.log("WebSocket is not open.");
+    }
+  });
+
 
 
   // Handle incoming messages
@@ -150,12 +201,12 @@
           addToOutput("methodId: " + methodId);
           // handleAccountModule(moduleId, methodId, messageBody)
           let protoFileURL = ""
-          switch (moduleId) {
-            case 1000:
+          switch (true) {
+            case moduleId === 1000:
                protoFileURL = '../proto/account.proto';
               handleDecodeProto(protoFileURL, methodId, messageBody)
               break;
-            case 2100:
+            case moduleId >= 2100:
                protoFileURL = '../proto/gamer.proto';
               handleDecodeProto(protoFileURL, methodId, messageBody)
               break;

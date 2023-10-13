@@ -21,6 +21,7 @@ type baseMod struct {
 
 func NewBaseMod(gbVar common.GbVar, process *gen.ServerProcess, sendChan chan []byte) baseMod {
 	client := baseMod{
+		GbVar:    gbVar,
 		infoFunc: make(map[int32]func(buf []byte)),
 		process:  process,
 		sendChan: sendChan,
@@ -72,7 +73,6 @@ func (s *baseMod) sendToClient(module int32, method int32, pb proto.Message) {
 		return
 	}
 
-	fmt.Println("PlayerServer_sendToClient ", module, method)
 	mldulebuf := helper.IntToBytes(module, 2)
 	methodbuf := helper.IntToBytes(method, 2)
 	s.sendChan <- helper.BytesCombine(mldulebuf, methodbuf, data)
@@ -101,7 +101,7 @@ func (c *baseMod) MsgHandler(module, method int32, buf []byte) {
 	//禁用模块
 	//next...
 
-	fmt.Printf("infoFunc %+v \n", c.infoFunc)
+	log.Logger.Infof("infoFunc %+v \n", c.infoFunc)
 	if msgFunc := c.infoFunc[method]; msgFunc != nil {
 		//if c.connectState == StatusGame {
 		//	msgfunc(buf)

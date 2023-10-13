@@ -15,12 +15,12 @@ import (
 	"github.com/ergo-services/ergo/gen"
 )
 
-type GateGenServer struct {
+type PlayerGenServer struct {
 	common.GbVar
 	gen.Server
 	SendChan chan []byte
 	//clientHandler  GateGenHandlerInterface
-	clientHandlers map[int32]GateGenHandlerInterface
+	clientHandlers map[int32]PlayerHandlerInterface
 }
 
 type GateCastMessage struct {
@@ -30,19 +30,19 @@ type GateCastMessage struct {
 	Buf      []byte
 }
 
-func (gateGS *GateGenServer) Init(process *gen.ServerProcess, args ...etf.Term) error {
+func (gs *PlayerGenServer) Init(process *gen.ServerProcess, args ...etf.Term) error {
 	log.Logger.Infof("Init (%v,%s): args %v ", process.Name(), process.Self(), args)
-	baseMod := mod.NewBaseMod(gateGS.GbVar, process, gateGS.SendChan)
-	gateGS.clientHandlers = make(map[int32]GateGenHandlerInterface)
+	baseMod := mod.NewBaseMod(gs.GbVar, process, gs.SendChan)
+	gs.clientHandlers = make(map[int32]PlayerHandlerInterface)
 
-	gateGS.clientHandlers[int32(pbGamer.MSG_GAMER_ATTR_MODULE)] = mod.NewAttrMod(gateGS.GbVar, baseMod)
-	gateGS.clientHandlers[int32(pbGamer.MSG_GAMER_SHOP_MODULE)] = mod.NewShopMod(gateGS.GbVar, baseMod)
+	gs.clientHandlers[int32(pbGamer.MSG_GAMER_ATTR_MODULE)] = mod.NewAttrMod(gs.GbVar, baseMod)
+	gs.clientHandlers[int32(pbGamer.MSG_GAMER_SHOP_MODULE)] = mod.NewShopMod(gs.GbVar, baseMod)
 
 	process.SendAfter(process.Self(), etf.Atom("login"), time.Second)
 	return nil
 }
 
-func (gateGS *GateGenServer) HandleCast(process *gen.ServerProcess, message etf.Term) gen.ServerStatus {
+func (gs *PlayerGenServer) HandleCast(process *gen.ServerProcess, message etf.Term) gen.ServerStatus {
 	log.Logger.Infof("gateGen HandleCast (%v): %v", process.Name(), message)
 	//defer func() {
 	//	if err := recover(); err != nil {
@@ -56,25 +56,25 @@ func (gateGS *GateGenServer) HandleCast(process *gen.ServerProcess, message etf.
 		log.Logger.Errorf("TermIntoStruct: %#v \n", err)
 	}
 
-	gateGS.clientHandlers[msg.ModuleId].MsgHandler(msg.PlayerId, msg.MethodId, msg.Buf)
+	gs.clientHandlers[msg.ModuleId].MsgHandler(msg.PlayerId, msg.MethodId, msg.Buf)
 	return gen.ServerStatusOK
 }
 
-func (gateGS *GateGenServer) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
+func (gs *PlayerGenServer) HandleCall(process *gen.ServerProcess, from gen.ServerFrom, message etf.Term) (etf.Term, gen.ServerStatus) {
 	log.Logger.Infof("HandleCall (%v): %v, From: %v", process.Name(), message, from)
 
-	//gateGS.clientHander.HandleCall(message)
+	//gs.clientHander.HandleCall(message)
 	reply := etf.Atom("ignore")
 	return reply, gen.ServerStatusOK
 }
 
-func (gateGS *GateGenServer) HandleInfo(process *gen.ServerProcess, message etf.Term) gen.ServerStatus {
+func (gs *PlayerGenServer) HandleInfo(process *gen.ServerProcess, message etf.Term) gen.ServerStatus {
 	switch info := message.(type) {
 	case etf.Atom:
 		switch info {
 		case "login":
-			//gateGS.SendChan <- []byte("send msg login ")
-			gateGS.SendToClient(int32(pbAccount.MSG_ACCOUNT_MODULE), int32(pbAccount.MSG_ACCOUNT_LOGIN), &pbAccount.Msg_1001Rsp{Code: 1, Data: "ok"})
+			//gs.SendChan <- []byte("send msg login ")
+			gs.SendToClient(int32(pbAccount.MSG_ACCOUNT_MODULE), int32(pbAccount.MSG_ACCOUNT_LOGIN), &pbAccount.Msg_1001Rsp{Code: 1, Data: "ok"})
 		}
 	}
 
@@ -82,11 +82,11 @@ func (gateGS *GateGenServer) HandleInfo(process *gen.ServerProcess, message etf.
 }
 
 // Terminate called when process died
-func (gateGS *GateGenServer) Terminate(process *gen.ServerProcess, reason string) {
+func (gs *PlayerGenServer) Terminate(process *gen.ServerProcess, reason string) {
 	log.Logger.Infof("Terminate (%v): %v", process.Name(), reason)
 }
 
-func (gateGS *GateGenServer) SendToClient(module int32, method int32, pb proto.Message) {
+func (gs *PlayerGenServer) SendToClient(module int32, method int32, pb proto.Message) {
 	//logrus.Debugf("client send msg [%v] [%v] [%v]", module, method, pb)
 	data, err := proto.Marshal(pb)
 	if err != nil {
@@ -96,5 +96,5 @@ func (gateGS *GateGenServer) SendToClient(module int32, method int32, pb proto.M
 
 	moduleBuf := helper.IntToBytes(module, 2)
 	methodBuf := helper.IntToBytes(method, 2)
-	gateGS.SendChan <- helper.BytesCombine(moduleBuf, methodBuf, data)
+	gs.SendChan <- helper.BytesCombine(moduleBuf, methodBuf, data)
 }

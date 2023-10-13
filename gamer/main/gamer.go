@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"gamer/apps/gamerapp"
 	"gamer/apps/gamerapp/player"
 	"gamer/cmd"
@@ -60,7 +59,7 @@ func main() {
 	}
 	sendChan := make(chan []byte, 1)
 
-	err = GamerNode.ProvideRemoteSpawn("player_remote", &player.GateGenServer{
+	err = GamerNode.ProvideRemoteSpawn("player_remote", &player.PlayerGenServer{
 		GbVar:    gbVar,
 		SendChan: sendChan,
 	})
@@ -95,7 +94,6 @@ func main() {
 	for {
 		select {
 		case buf := <-sendChan:
-			fmt.Println("buf:::", buf)
 			err := p.Send(gen.ProcessID{Name: "web", Node: "WsGate@localhost"}, etf.Term(etf.Tuple{etf.Atom("$gen_cast"), buf}))
 			if err != nil {
 				log.Logger.Error(err)

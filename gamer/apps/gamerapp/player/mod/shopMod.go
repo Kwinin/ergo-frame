@@ -52,21 +52,19 @@ func (a *Shop) OnMessage(Id int) string {
 	return fmt.Sprintf("use id :%d", Id)
 }
 
-func (c *Shop) shopInfo(msg *pbGamer.Msg_2101Req) {
-
-	rspMsg := &pbGamer.Msg_2101Rsp{
-		Nickname: msg.Nickname,
-		Address:  msg.Address,
-		Addresses: []*pbGamer.Address{
+func (c *Shop) shopInfo(msg *pbGamer.Msg_2201Req) {
+	log.Logger.Infof("shopInfo %+v", msg)
+	rspMsg := &pbGamer.Msg_2201Rsp{
+		Items: []*pbGamer.Item{
 			{
-				Street: "成华大道3444",
-				City:   "成都",
+				Code: 10000234,
+				Name: "屠龙刀",
 			},
 			{
-				Street: "二仙桥",
-				City:   "成都",
+				Code: 10000235,
+				Name: "倚天剑",
 			},
 		},
 	}
-	c.sendToClient(int32(pbGamer.MSG_GAMER_ATTR_MODULE), int32(pbGamer.MSG_GAMER_ATTR_INFO), rspMsg)
+	c.sendToClient(int32(pbGamer.MSG_GAMER_SHOP_MODULE), int32(pbGamer.MSG_GAMER_SHOP_INFO), rspMsg)
 }

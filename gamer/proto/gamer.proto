@@ -21,6 +21,10 @@ message Address {
   string street = 1;
   string city = 2;
 }
+message Item {
+  int32 code = 1;
+  string name = 2;
+}
 
 //用户信息
 message msg_2101_req {
@@ -33,5 +37,14 @@ message msg_2101_rsp {
   string nickname =1;
   string address =2;
   repeated  Address addresses= 3;
+}
 
+// 商店信息
+message msg_2201_req {
+  int32 itemCode =1;
+  string itemName =2;
+}
+
+message msg_2201_rsp {
+  repeated Item items= 1;
 }
