@@ -8,13 +8,13 @@ import (
 
 type Attr struct {
 	common.GbVar
-	baseMod
+	BaseMod
 }
 
-func NewAttrMod(gbVar common.GbVar, baseMod baseMod) *Attr {
+func NewAttrMod(gbVar common.GbVar, BaseMod BaseMod) *Attr {
 	attr := &Attr{
 		GbVar:   gbVar,
-		baseMod: baseMod,
+		BaseMod: BaseMod,
 	}
 
 	attr.initMsgRoute()
@@ -24,7 +24,7 @@ func NewAttrMod(gbVar common.GbVar, baseMod baseMod) *Attr {
 func (c *Attr) initMsgRoute() {
 	//消息注册
 	//账号
-	c.infoFunc[int32(pbGamer.MSG_GAMER_ATTR_INFO)] = helper.CreateRegisterFunc(c.attrInfo)
+	c.InfoFunc[int32(pbGamer.MSG_GAMER_ATTR_INFO)] = helper.CreateRegisterFunc(c.attrInfo)
 }
 
 func (c *Attr) attrInfo(msg *pbGamer.Msg_2101Req) {
@@ -43,7 +43,7 @@ func (c *Attr) attrInfo(msg *pbGamer.Msg_2101Req) {
 			},
 		},
 	}
-	c.sendToClient(int32(pbGamer.MSG_GAMER_ATTR_MODULE), int32(pbGamer.MSG_GAMER_ATTR_INFO), rspMsg)
+	c.SendToClient(int32(pbGamer.MSG_GAMER_ATTR_MODULE), int32(pbGamer.MSG_GAMER_ATTR_INFO), rspMsg)
 }
 
 //func (c *Attr) InitHandler(process *gen.ServerProcess, sendChan chan []byte) {
@@ -69,8 +69,8 @@ func (c *Attr) attrInfo(msg *pbGamer.Msg_2101Req) {
 //	//禁用模块
 //	//next...
 //
-//	fmt.Printf("infoFunc %+v \n", c.infoFunc)
-//	if msgFunc := c.infoFunc[method]; msgFunc != nil {
+//	fmt.Printf("InfoFunc %+v \n", c.InfoFunc)
+//	if msgFunc := c.InfoFunc[method]; msgFunc != nil {
 //		//if c.connectState == StatusGame {
 //		//	msgfunc(buf)
 //		//} else {

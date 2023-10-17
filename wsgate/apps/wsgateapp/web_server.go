@@ -12,6 +12,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"net/http"
+	"strconv"
 	"wsgate/common"
 	"wsgate/config"
 	"wsgate/log"
@@ -330,8 +331,9 @@ func (web *webServer) login(playerId uint16) (string, error) {
 	//	return "disable repeat login", nil
 	//}
 
+	playerStr := strconv.FormatUint(uint64(playerId), 10)
 	// todo : rand a gamer node
-	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, playerId)
+	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, etf.Atom(playerStr))
 	if err != nil {
 		return "", err
 	}
