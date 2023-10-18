@@ -213,8 +213,7 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	token := r.Header.Get("Authorization")
 
-	fmt.Printf("343 %+v", r.Header)
-	fmt.Printf("34233 %+v", token)
+	log.Logger.Infof("token: %s", token)
 	//if token == "" {
 	//	// 未提供令牌，拒绝连接
 	//	w.WriteHeader(http.StatusUnauthorized)
@@ -284,12 +283,9 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 				log.Logger.Error(err)
 				break
 			}
-			fmt.Printf("23434 %s ,%+v \n", web.process.Name(), web.process.Info())
 		default:
 			messageBody := p[8:]
-			// todo: rand a gamer node
 			name := fmt.Sprintf("player_remote_%d", header.PlayerId)
-
 			//err := web.process.Send(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, etf.Term(etf.Tuple{etf.Atom("$gen_cast"), etf.Tuple{header.PlayerId, header.MsgID, messageBody}}))
 			err = web.process.Cast(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, etf.Tuple{header.PlayerId, header.ModuleId, header.MethodID, messageBody})
 			if err != nil {
@@ -302,7 +298,7 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		case buf := <-web.sendChan:
 			err := conn.WriteMessage(websocket.BinaryMessage, buf)
 			if err != nil {
-				fmt.Println(111, err)
+				log.Logger.Error(err)
 				break
 			}
 		case <-sendctx.Done():

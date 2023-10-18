@@ -11,26 +11,24 @@ type Item struct {
 	Name string
 }
 type ShopModel struct {
-	Items    []Item
-	PlayerId int32
+	Items []Item
 }
 
-func newShopModel(playerId int32) *ShopModel {
+func newShopModel() *ShopModel {
 	sm := new(ShopModel)
-	sm.PlayerId = playerId
 	return sm
 }
 
-func NewShopModel(playerId int32) *ShopModel {
-	return newShopModel(playerId)
+func NewShopModel() *ShopModel {
+	return newShopModel()
 }
 
-func (sm *ShopModel) TableName() string {
-	return fmt.Sprintf("state_model:%d", sm.PlayerId)
+func (sm *ShopModel) TableName(playerId int32) string {
+	return fmt.Sprintf("shop_model:%d", playerId)
 
 }
 
-func (sm *ShopModel) SetAllShop(db *db.DBClient) error {
+func (sm *ShopModel) SetAllShop(db *db.DBClient, playerId int32) error {
 	// 将 Items 切片转化为JSON字符串
 	itemsJSON, err := json.Marshal(sm.Items)
 	if err != nil {
@@ -38,24 +36,22 @@ func (sm *ShopModel) SetAllShop(db *db.DBClient) error {
 	}
 
 	data := map[string]interface{}{
-		"PlayerId": sm.PlayerId,
-		"Items":    string(itemsJSON),
+		"Items": string(itemsJSON),
 	}
 
-	err = db.MultiHSet(sm.TableName(), data)
+	err = db.MultiHSet(sm.TableName(playerId), data)
 	if err != nil {
 		return fmt.Errorf("MultiHSet error %v", err)
 	}
 	return nil
 }
 
-func (sm *ShopModel) GetAllShop(db *db.DBClient) (*ShopModel, error) {
-	resData, err := db.HGetAll(sm.TableName())
+func (sm *ShopModel) GetAllShop(db *db.DBClient, playerId int32) (*ShopModel, error) {
+	resData, err := db.HGetAll(sm.TableName(playerId))
 	if err != nil {
 		return nil, err
 	}
 	shop := new(ShopModel)
-	shop.PlayerId = resData["PlayerId"].Int32()
 	itemsJSON := resData["Items"].String()
 
 	if itemsJSON != "" {

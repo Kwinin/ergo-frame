@@ -22,6 +22,6 @@ const (
 )
 
 const (
-	RoleStatusLogin   int = 1 // 登录
-	RoleStatusOffline int = 2 // 下线
+	RoleStatusLogin   string = "login"   // 登录
+	RoleStatusOffline string = "offline" // 下线
 )

@@ -10,7 +10,9 @@ enum MSG_ACCOUNT {
     MODULE  = 1000;
     
     //method
-    LOGIN = 1001;//用户登陆
+    LOGIN = 1001; //用户登陆
+    OFFLINE = 1002; //用户登出
+
 }
 
 
@@ -21,6 +23,16 @@ message msg_1001_req {
 }
 
 message msg_1001_rsp {
-    sint32 code = 1;
+    sint32 retCode = 1;
+    string data = 2;
+}
+
+message msg_1002_req {
+    string token =1;
+
+}
+
+message msg_1002_rsp {
+    sint32 retCode = 1;
     string data = 2;
 }

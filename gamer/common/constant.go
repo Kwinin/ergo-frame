@@ -20,3 +20,8 @@ const (
 	CloseConn    string = "CloseConn"
 	Register     string = "Register"
 )
+
+const (
+	RoleStatusLogin   string = "login"   // 登录
+	RoleStatusOffline string = "offline" // 下线
+)

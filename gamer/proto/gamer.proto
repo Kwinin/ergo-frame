@@ -46,7 +46,8 @@ message msg_2201_req {
 }
 
 message msg_2201_rsp {
-  repeated Item items= 1;
+  sint32 retCode = 1;
+  repeated Item items= 2;
 }
 
 // 新增商店商品
@@ -56,5 +57,5 @@ message msg_2202_req {
 }
 
 message msg_2202_rsp {
-  int32 retCode = 1;
+  sint32 retCode = 1;
 }

@@ -13,6 +13,9 @@
 <input type="text" id="accountInput" placeholder="Account">
 </br>
 <br>
+<button id="offlineButton">offline</button>
+</br>
+<br>
 <button id="attrInfoButton">attrInfo</button>
 <input type="text" id="nicknameInput" placeholder="NickName">
 </br>
@@ -96,6 +99,48 @@
       console.log("WebSocket is not open.");
     }
   });
+  document.getElementById("offlineButton").addEventListener("click", () => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      // Get account and password inputs
+      const accountInput = document.getElementById("accountInput").value;
+
+      const protoFileURL = '../proto/account.proto';
+
+      // 使用protobuf.js加载Proto文件
+      protobuf.load(protoFileURL, (err, root) => {
+        if (err) throw err;
+
+        // 获取消息类型
+        const MyMessage = root.lookupType('msg_1002_req');
+        // Create a c2s_Login message
+        const Message = {
+          token: "test_" + accountInput,
+        };
+        // 解析二进制数据
+        const msgBuffer = MyMessage.encode(Message).finish();
+        // Create the message header
+        const header = new ArrayBuffer(8);
+        const headerView = new DataView(header);
+        const messageLength = msgBuffer.byteLength + 8; // Length of the message
+        headerView.setUint16(0, messageLength, true); // Set message length (little-endian)
+        headerView.setUint16(2, accountInput , true); // Set player ID (little-endian)
+        headerView.setUint16(4, 1000 , true); // Set module ID (little-endian)
+        headerView.setUint16(6, 1002, true); // Set method ID (little-endian)
+
+        // Concatenate header and message
+        const c2sLoginData = new Uint8Array(messageLength);
+        c2sLoginData.set(new Uint8Array(header), 0);
+        c2sLoginData.set(new Uint8Array(msgBuffer), 8);
+
+        // Send the message to the server
+        socket.send(c2sLoginData);
+      });
+
+    } else {
+      console.log("WebSocket is not open.");
+    }
+  });
+
   document.getElementById("attrInfoButton").addEventListener("click", () => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       const accountInput = document.getElementById("accountInput").value;

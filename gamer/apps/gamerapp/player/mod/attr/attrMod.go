@@ -1,6 +1,7 @@
-package mod
+package attr
 
 import (
+	"gamer/apps/gamerapp/player/mod"
 	"gamer/common"
 	"gamer/helper"
 	pbGamer "gamer/proto/gamer"
@@ -8,10 +9,10 @@ import (
 
 type Attr struct {
 	common.GbVar
-	BaseMod
+	mod.BaseMod
 }
 
-func NewAttrMod(gbVar common.GbVar, BaseMod BaseMod) *Attr {
+func NewAttrMod(gbVar common.GbVar, BaseMod mod.BaseMod) *Attr {
 	attr := &Attr{
 		GbVar:   gbVar,
 		BaseMod: BaseMod,

@@ -21,7 +21,7 @@ func NewShopMod(gbVar common.GbVar, BaseMod mod.BaseMod) *Shop {
 	shop := &Shop{
 		GbVar:   gbVar,
 		BaseMod: BaseMod,
-		model:   NewShopModel(BaseMod.PlayerId),
+		model:   NewShopModel(),
 	}
 	shop.initHandler()
 	shop.initMsgRoute()
@@ -35,8 +35,11 @@ func (c *Shop) initMsgRoute() {
 	c.InfoFunc[int32(pbGamer.MSG_GAMER_SHOP_ADD)] = helper.CreateRegisterFunc(c.addShopItem)
 }
 func (c *Shop) initHandler() {
-	c.OnLoad()
-	fmt.Println(111, c.model.PlayerId, c.model.Items, 3333)
+	load, err := c.OnLoad()
+	if err != nil {
+		log.Logger.Error(err)
+	}
+	log.Logger.Infof("Load shop mod, playerId:%d, shopModel: %+v", c.PlayerId, load)
 
 }
 
@@ -45,11 +48,13 @@ func (c *Shop) BeforeHandler() {
 }
 
 func (c *Shop) AfterHandler() {
-	err := c.model.SetAllShop(c.DB)
+
+}
+func (c *Shop) OfflineHandler() {
+	err := c.model.SetAllShop(c.DB, c.PlayerId)
 	if err != nil {
 		log.Logger.Error(err)
 	}
-
 }
 
 func (s *Shop) Name() string {
@@ -81,6 +86,7 @@ func (c *Shop) shopInfo(msg *pbGamer.Msg_2201Req) {
 	for _, item := range c.model.Items {
 		rspMsg.Items = append(rspMsg.Items, &pbGamer.Item{Code: item.Code, Name: item.Name})
 	}
+	rspMsg.RetCode = 1
 	c.SendToClient(int32(pbGamer.MSG_GAMER_SHOP_MODULE), int32(pbGamer.MSG_GAMER_SHOP_INFO), rspMsg)
 }
 
@@ -93,10 +99,11 @@ func (c *Shop) addShopItem(msg *pbGamer.Msg_2202Req) {
 	c.SendToClient(int32(pbGamer.MSG_GAMER_SHOP_MODULE), int32(pbGamer.MSG_GAMER_SHOP_ADD), rspMsg)
 }
 
-func (c *Shop) OnLoad() {
-	m, err := c.model.GetAllShop(c.GbVar.DB)
+func (c *Shop) OnLoad() (*ShopModel, error) {
+	m, err := c.model.GetAllShop(c.GbVar.DB, c.PlayerId)
 	if err != nil {
-		log.Logger.Error(err)
+		return nil, err
 	}
 	c.model = m
+	return c.model, nil
 }

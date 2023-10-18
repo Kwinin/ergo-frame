@@ -16,7 +16,7 @@ type BaseMod struct {
 	common.GbVar
 	InfoFunc map[int32]func(buf []byte)
 	sendChan chan []byte
-	process  *gen.ServerProcess
+	Process  *gen.ServerProcess
 	PlayerId int32
 }
 
@@ -25,7 +25,7 @@ func NewBaseMod(gbVar common.GbVar, process *gen.ServerProcess, sendChan chan []
 		GbVar:    gbVar,
 		PlayerId: playerId,
 		InfoFunc: make(map[int32]func(buf []byte)),
-		process:  process,
+		Process:  process,
 		sendChan: sendChan,
 	}
 
@@ -84,6 +84,9 @@ func (c *BaseMod) BeforeHandler() {
 
 }
 func (c *BaseMod) AfterHandler() {
+
+}
+func (c *BaseMod) OfflineHandler() {
 
 }
 
