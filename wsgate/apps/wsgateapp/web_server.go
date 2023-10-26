@@ -202,26 +202,41 @@ var upgrader = websocket.Upgrader{
 //
 //		}
 //	}
-func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
+type Client struct {
+	conn     *websocket.Conn
+	PlayerId uint16 // 用户标识符
+}
+
+var clients = make(map[*Client]bool)
+
+func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Error upgrading connection:", err)
 		return
 	}
-	defer conn.Close()
+	//token := r.Header.Get("Authorization")
+	//log.Logger.Infof("token: %s", token)
 
-	token := r.Header.Get("Authorization")
+	// 为每个连接分配一个唯一的用户标识符
+	client := &Client{conn: conn}
 
-	log.Logger.Infof("token: %s", token)
+	sendctx, sendcancelFunc := context.WithCancel(context.Background())
+
+	defer sendcancelFunc()
+
+	defer func() {
+		fmt.Println("用户", client.PlayerId, "断开连接")
+		delete(clients, client)
+		conn.Close()
+	}()
+
 	//if token == "" {
 	//	// 未提供令牌，拒绝连接
 	//	w.WriteHeader(http.StatusUnauthorized)
 	//	return
 	//}
-
-	sendctx, sendcancelFunc := context.WithCancel(context.Background())
-	defer sendcancelFunc()
 
 	var header struct {
 		Length   uint16
@@ -233,8 +248,7 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	for {
 		messageType, p, err := conn.ReadMessage()
 		if err != nil {
-			fmt.Println("Error reading message:", err)
-			return
+			break
 		}
 
 		if messageType != websocket.BinaryMessage {
@@ -283,6 +297,9 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 				log.Logger.Error(err)
 				break
 			}
+			client.PlayerId = header.PlayerId
+			clients[client] = true
+
 		default:
 			messageBody := p[8:]
 			name := fmt.Sprintf("player_remote_%d", header.PlayerId)
