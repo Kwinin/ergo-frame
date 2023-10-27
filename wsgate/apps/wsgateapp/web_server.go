@@ -40,10 +40,10 @@ type webServer struct {
 func (web *webServer) InitWeb(process *gen.WebProcess, args ...etf.Term) (gen.WebOptions, error) {
 	var options gen.WebOptions
 
-	options.Port = uint16(config.Cfg.Web.Port)
-	options.Host = config.Cfg.Web.Host
+	options.Port = uint16(config.ServerCfg.Web.Port)
+	options.Host = config.ServerCfg.Web.Host
 	proto := "http"
-	if config.Cfg.Web.Enable {
+	if config.ServerCfg.Web.Enable {
 		cert, err := lib.GenerateSelfSignedCert("gen.Web demo")
 		if err != nil {
 			return options, err

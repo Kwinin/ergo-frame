@@ -24,8 +24,12 @@ func (sup *WsGateSup) Init(args ...etf.Term) (gen.SupervisorSpec, error) {
 		Name: "wsgatesup",
 		Children: []gen.SupervisorChildSpec{
 			gen.SupervisorChildSpec{
-				Name:  "wsgateactor",
-				Child: createWsGateActor(),
+				Name: "wsgateactor",
+				Child: createWsGateActor(common.GbVar{
+					NodeName: sup.NodeName,
+					Cfg:      sup.Cfg,
+					DB:       sup.DB,
+				}),
 			},
 			gen.SupervisorChildSpec{
 				Name:  "tcp",

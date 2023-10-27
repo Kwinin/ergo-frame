@@ -14,8 +14,8 @@ func StartMasterNode(cmd chan string, db *db.DBClient) (node.Node, error) {
 	var options node.Options
 
 	lis := node.Listener{
-		ListenBegin: uint16(config.ServerCfg.ListenBegin),
-		ListenEnd:   uint16(config.ServerCfg.ListenEnd),
+		ListenBegin: config.ServerCfg.ListenBegin,
+		ListenEnd:   config.ServerCfg.ListenEnd,
 	}
 
 	// Create applications that must be started

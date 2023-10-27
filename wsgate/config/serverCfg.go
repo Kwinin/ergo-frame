@@ -1,58 +1,27 @@
 package config
 
-// ServerConfig  server cfg
 type ServerConfig struct {
-	ServerRole string
-	ServerID   int32
-	Version    string
-	Node       NodeConf
+	ServerID    int32    `json:"serverId"`
+	ServerRole  string   `json:"serverRole"`
+	Version     string   `json:"version"`
+	Cookie      string   `json:"cookie"`
+	SSDB        SSDBConf `json:"ssdb" mapstructure:"ssdb"`
+	Node        NodeConf `json:"node" mapstructure:"node"`
+	MasterAddr  string   `json:"masterAddr"`
+	ListenBegin uint16   `json:"listenBegin"`
+	ListenEnd   uint16   `json:"listenEnd"`
 
-	Daemon     bool
-	RestartNum int
+	Tcp Tcp `json:"tcp" mapstructure:"tcp"`
+	Web
+}
 
-	OpenHTTP bool
-	HTTPPort int32
-	OpenWS   bool
-	SetMode  string
-
-	OpenPyroscope bool
-	PyroscopeHost string
-
-	NetType       string
-	Port          int32
-	Packet        int32
-	Readtimeout   int32 //读超时时间
-	MaxConnectNum int32 //最大连接数
-
-	MsgTime int32
-	MsgNum  int32
-
-	ProtoPath string
-	GoOut     string
-
-	MongoConnStr string
-	Mongodb      string
-
-	RedisConnStr string
-	RedisDB      int
-
-	CfgPath     string
-	CfgType     string
-	WatchConfig bool
-
-	LogWrite bool
-	Loglevel string
-	LogPath  string
-	LogName  string
-
-	ListenBegin int
-	ListenEnd   int
-	Cookie      string
-
-	StartServerList   []string
-	CentralServerNode []string
-
-	SSDB SSDBConf
+type NodeConf struct {
+	Id   int32  `mapstructure:"id"`
+	Role string `mapstructure:"role"`
+	Name string `mapstructure:"name"`
+	Addr string `mapstructure:"addr"`
+	Sign string `mapstructure:"sign"`
+	Ip   string `mapstructure:"ip"`
 }
 
 type SSDBConf struct {
@@ -60,61 +29,19 @@ type SSDBConf struct {
 	Port int
 }
 
-// ServerCfg  Program overall configuration
-var ServerCfg = ServerConfig{
-	ServerRole: "wsgate",
-	ServerID:   4,
-	Version:    "1.0.0",
+type Tcp struct {
+	Host   string `mapstructure:"host"`
+	Port   int    `mapstructure:"port"`
+	Enable bool   `mapstructure:"enable"`
+}
 
-	Daemon:     false,
-	RestartNum: 2,
+type Web struct {
+	Host   string `mapstructure:"host"`
+	Port   int    `mapstructure:"port"`
+	Enable bool   `mapstructure:"enable"`
+}
 
-	// http
-	OpenHTTP: false,
-	HTTPPort: 8080,
-	OpenWS:   true,
-	SetMode:  "debug",
-
-	OpenPyroscope: false,
-	PyroscopeHost: "http://localhost:4040",
-
-	// #network : tcp/udp
-	NetType:       "tcp",
-	Port:          3344,
-	Packet:        2,
-	Readtimeout:   0,
-	MaxConnectNum: 2000,
-
-	MsgTime: 300,
-	MsgNum:  500,
-
-	// #protobuf path
-	ProtoPath: "./proto",
-	GoOut:     "./msgproto",
-
-	MongoConnStr: "mongodb://localhost:27017",
-	Mongodb:      "mygame",
-
-	RedisConnStr: "localhost:6379",
-	RedisDB:      0,
-
-	CfgPath:     "./conf",
-	CfgType:     "json",
-	WatchConfig: false,
-
-	Loglevel: "info",
-	LogPath:  "./log",
-	LogName:  "log",
-	LogWrite: false,
-
-	ListenBegin:       15151,
-	ListenEnd:         25151,
-	Cookie:            "cookie123",
-	StartServerList:   []string{"db", "gateway", "server"},
-	CentralServerNode: []string{"CentralServerNode@127.0.0.1"},
-
-	SSDB: SSDBConf{
-		Host: "127.0.0.1",
-		Port: 8888,
-	},
+type SSDB struct {
+	Host string `mapstructure:"host"`
+	Port int    `mapstructure:"port"`
 }

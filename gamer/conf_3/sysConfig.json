@@ -1,0 +1,11 @@
+{
+  "serverId": 3,
+  "serverRole":"gamer",
+  "version": "1.0.0",
+  "cookie": "cookie123",
+  "ssdb": {"host": "127.0.0.1", "port": 8888},
+  "node": {"id": 3,"role": "gamer","name": "GamerNode2","addr": "node2Gamer@localhost","sign": "515dc4ASc", "ip": "127.0.0.1"},
+  "masterAddr":  "Master@localhost",
+  "listenBegin": 15151,
+  "listenEnd": 25151
+}

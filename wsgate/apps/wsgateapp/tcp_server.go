@@ -19,15 +19,15 @@ type tcpServer struct {
 
 func (ts *tcpServer) InitTCP(process *gen.TCPProcess, args ...etf.Term) (gen.TCPOptions, error) {
 	options := gen.TCPOptions{
-		Host:    config.Cfg.Tcp.Host,
-		Port:    uint16(config.Cfg.Tcp.Port),
+		Host:    config.ServerCfg.Tcp.Host,
+		Port:    uint16(config.ServerCfg.Tcp.Port),
 		Handler: &tcpHandler{},
 	}
 
-	if config.Cfg.Tcp.Enable {
+	if config.ServerCfg.Tcp.Enable {
 		cert, _ := lib.GenerateSelfSignedCert("localhost")
 		log.Logger.Println("TLS enabled. Generated self signed certificate. You may check it with command below:")
-		log.Logger.Infof("   $ openssl s_client -connect %s:%d\n", config.Cfg.Tcp.Host, config.Cfg.Tcp.Port)
+		log.Logger.Infof("   $ openssl s_client -connect %s:%d\n", config.ServerCfg.Tcp.Host, config.ServerCfg.Tcp.Port)
 		options.TLS = &tls.Config{
 			Certificates:       []tls.Certificate{cert},
 			InsecureSkipVerify: true,

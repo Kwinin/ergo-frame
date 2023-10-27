@@ -67,7 +67,7 @@ func (t *TransGen) NodeRegisterToMaster() (string, error) {
 	//err.Error() == "no route to node"
 	r := res.(string)
 	if err != nil || r == "failed" {
-		failedStr := fmt.Sprintf("connect %s failed", config.Cfg.MasterAddr)
+		failedStr := fmt.Sprintf("connect %s failed", config.ServerCfg.MasterAddr)
 		//t.transGenServer.process.Exit(failedStr)
 		return failedStr, err
 	}
@@ -75,7 +75,7 @@ func (t *TransGen) NodeRegisterToMaster() (string, error) {
 }
 
 func (t *TransGen) Exit() {
-	failedStr := fmt.Sprintf("connect %s failed", config.Cfg.MasterAddr)
+	failedStr := fmt.Sprintf("connect %s failed", config.ServerCfg.MasterAddr)
 	t.transGenServer.process.Exit(failedStr)
 }
 

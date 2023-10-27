@@ -7,7 +7,7 @@ import (
 
 type GbVar struct {
 	NodeName string
-	Cfg      config.Conf
+	Cfg      config.ServerConfig
 	DB       *db.DBClient
 }
 

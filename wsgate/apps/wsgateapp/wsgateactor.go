@@ -4,16 +4,22 @@ import (
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 	"wsgate/common"
-	"wsgate/config"
 	"wsgate/log"
 )
 
-func createWsGateActor() gen.ServerBehavior {
-	return &WsGateActor{}
+func createWsGateActor(gbVar common.GbVar) gen.ServerBehavior {
+	return &WsGateActor{
+		GbVar: common.GbVar{
+			NodeName: gbVar.NodeName,
+			Cfg:      gbVar.Cfg,
+			DB:       gbVar.DB,
+		},
+	}
 }
 
 type WsGateActor struct {
 	gen.Server
+	common.GbVar
 }
 
 // Init invoked on a start this process.
@@ -52,7 +58,7 @@ func (s *WsGateActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom
 	log.Logger.Infof("TransMessage, %+v", msg)
 	if msg.CMD == common.Shutdown {
 		// todo:待优化
-		if msg.FromNode.Addr == config.Cfg.MasterAddr {
+		if msg.FromNode.Addr == s.Cfg.MasterAddr {
 			// 数据落盘
 
 			process.Exit("active out")

@@ -27,16 +27,22 @@ func (sup *GamerSup) Init(args ...etf.Term) (gen.SupervisorSpec, error) {
 		Name: fmt.Sprintf("%s_%d_sup", config.ServerCfg.ServerRole, config.ServerCfg.ServerID),
 		Children: []gen.SupervisorChildSpec{
 			gen.SupervisorChildSpec{
-				Name:  fmt.Sprintf("%s_%d_actor", config.ServerCfg.ServerRole, config.ServerCfg.ServerID),
-				Child: createGamerActor(),
+				Name: fmt.Sprintf("%s_%d_actor", config.ServerCfg.ServerRole, config.ServerCfg.ServerID),
+				Child: createGamerActor(
+					common.GbVar{
+						NodeName: sup.NodeName,
+						Cfg:      sup.Cfg,
+						DB:       sup.DB,
+					}),
 			},
 			gen.SupervisorChildSpec{
 				Name: "playersup",
-				Child: player.CreatePlayerSup(common.GbVar{
-					NodeName: sup.NodeName,
-					Cfg:      sup.Cfg,
-					DB:       sup.DB,
-				}),
+				Child: player.CreatePlayerSup(
+					common.GbVar{
+						NodeName: sup.NodeName,
+						Cfg:      sup.Cfg,
+						DB:       sup.DB,
+					}),
 			},
 		},
 		Strategy: gen.SupervisorStrategy{

@@ -6,7 +6,7 @@ import (
 )
 
 var Config *viper.Viper
-var Cfg Conf
+var ServerCfg ServerConfig
 
 func InitConfig(configPath string) error {
 	Config = viper.New()
@@ -20,9 +20,9 @@ func InitConfig(configPath string) error {
 		return fmt.Errorf("无法加载初始配置文件：%s \n", err)
 	}
 
-	Config.Unmarshal(&Cfg)
+	Config.Unmarshal(&ServerCfg)
 
-	for _, v := range Cfg.NodeList {
+	for _, v := range ServerCfg.NodeList {
 		if v.Role == ServerCfg.ServerRole && v.Id == ServerCfg.ServerID {
 			ServerCfg.Node = v
 			break
@@ -35,7 +35,7 @@ func InitConfig(configPath string) error {
 	return nil
 }
 func GetNodeInfo(serverRole string, serverId int32) (nodeC *NodeConf, err error) {
-	for _, v := range Cfg.NodeList {
+	for _, v := range ServerCfg.NodeList {
 		if v.Id == serverId && v.Role == serverRole {
 			nodeC = &v
 			err = nil

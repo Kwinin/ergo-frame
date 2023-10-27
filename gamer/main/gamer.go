@@ -13,28 +13,37 @@ import (
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
+	"os"
 	"time"
 )
 
 func main() {
 	log.InitLogger()
 
-	err := config.InitConfig(config.ServerCfg.CfgPath)
+	err := config.InitConfig(os.Getenv("ERGO_ENV_CONF"))
 	if err != nil {
 		log.Logger.Error(err)
 	}
 	db, err := db.InfDb.NewDBClient(&db.SctSSdb{})
 	if err != nil {
-		log.Logger.Errorf("%+v", err)
+		log.Logger.Errorf("ssdb: %+v", err)
 	}
 
 	gbVar := common.GbVar{
 		NodeName: config.ServerCfg.Node.Addr,
-		Cfg:      config.Cfg,
+		Cfg:      config.ServerCfg,
 		DB:       db,
 	}
 
 	var options node.Options
+	listener := node.Listener{
+		ListenBegin: config.ServerCfg.ListenBegin,
+		ListenEnd:   config.ServerCfg.ListenEnd,
+	}
+	options = node.Options{
+		Listeners: []node.Listener{listener},
+		//Registrar: dist.CreateRegistrarWithLocalEPMD("", 24999), EPMD默认端口4369
+	}
 
 	flag.Parse()
 
@@ -70,15 +79,15 @@ func main() {
 
 	}
 	go func() {
-		_, _, Tg := cmd.NewSpawnTrans(GamerNode, "master_1_actor", config.Cfg.MasterAddr)
+		_, _, Tg := cmd.NewSpawnTrans(GamerNode, "master_1_actor", config.ServerCfg.MasterAddr)
 
 		connect := false
 		for {
-			err = GamerNode.Connect(config.Cfg.MasterAddr)
+			err = GamerNode.Connect(config.ServerCfg.MasterAddr)
 			if err != nil {
 				// 找不到 master 节点
 				connect = false
-				log.Logger.Infof("disconnect  %s reason: %v", config.Cfg.MasterAddr, err)
+				log.Logger.Infof("disconnect  %s reason: %v", config.ServerCfg.MasterAddr, err)
 
 			} else {
 				if connect == false {

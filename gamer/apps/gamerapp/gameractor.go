@@ -2,18 +2,24 @@ package gamerapp
 
 import (
 	"gamer/common"
-	"gamer/config"
 	"gamer/log"
 	"github.com/ergo-services/ergo/etf"
 	"github.com/ergo-services/ergo/gen"
 )
 
-func createGamerActor() gen.ServerBehavior {
-	return &GamerActor{}
+func createGamerActor(gbVar common.GbVar) gen.ServerBehavior {
+	return &GamerActor{
+		GbVar: common.GbVar{
+			NodeName: gbVar.NodeName,
+			Cfg:      gbVar.Cfg,
+			DB:       gbVar.DB,
+		},
+	}
 }
 
 type GamerActor struct {
 	gen.Server
+	common.GbVar
 }
 
 type makeCall struct {
@@ -69,7 +75,7 @@ func (s *GamerActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom,
 
 	switch msg.CMD {
 	case common.Shutdown:
-		if msg.FromNode.Addr == config.Cfg.MasterAddr {
+		if msg.FromNode.Addr == s.Cfg.MasterAddr {
 			// 数据落盘
 			process.Exit("active out")
 			process.NodeStop()

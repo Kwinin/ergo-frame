@@ -5,6 +5,7 @@ import (
 	"github.com/ergo-services/ergo"
 	"github.com/ergo-services/ergo/gen"
 	"github.com/ergo-services/ergo/node"
+	"os"
 	"time"
 	"wsgate/apps/wsgateapp"
 	"wsgate/cmd"
@@ -17,7 +18,7 @@ import (
 func main() {
 	log.InitLogger()
 
-	err := config.InitConfig(config.ServerCfg.CfgPath)
+	err := config.InitConfig(os.Getenv("ERGO_ENV_CONF"))
 	if err != nil {
 		log.Logger.Error(err)
 	}
@@ -29,7 +30,7 @@ func main() {
 
 	gbVar := common.GbVar{
 		NodeName: config.ServerCfg.Node.Addr,
-		Cfg:      config.Cfg,
+		Cfg:      config.ServerCfg,
 		DB:       db,
 	}
 
@@ -43,7 +44,8 @@ func main() {
 	}
 
 	listener := node.Listener{
-		Listen: 25001,
+		ListenBegin: config.ServerCfg.ListenBegin,
+		ListenEnd:   config.ServerCfg.ListenEnd,
 	}
 	options = node.Options{
 		Listeners: []node.Listener{listener},
@@ -62,15 +64,15 @@ func main() {
 	log.Logger.Infof("Node %q is started\n", WsGateNode.Name())
 
 	go func() {
-		_, _, Tg := cmd.NewSpawnTrans(WsGateNode, "master_1_actor", config.Cfg.MasterAddr)
+		_, _, Tg := cmd.NewSpawnTrans(WsGateNode, "master_1_actor", config.ServerCfg.MasterAddr)
 
 		connect := false
 		for {
-			err = WsGateNode.Connect(config.Cfg.MasterAddr)
+			err = WsGateNode.Connect(config.ServerCfg.MasterAddr)
 			if err != nil {
 				// 找不到 master 节点
 				connect = false
-				log.Logger.Infof("disconnect  %s reason: %v", config.Cfg.MasterAddr, err)
+				log.Logger.Infof("disconnect  %s reason: %v", config.ServerCfg.MasterAddr, err)
 
 			} else {
 				if connect == false {

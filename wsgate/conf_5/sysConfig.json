@@ -1,0 +1,21 @@
+{
+  "serverId": 5,
+  "serverRole":"wsgate",
+  "version": "1.0.0",
+  "cookie": "cookie123",
+  "ssdb": {"host": "127.0.0.1", "port": 8888},
+  "node": {"id": 5,"role": "wsgate","name": "GateNode2", "addr": "node2WsGate@localhost","sign": "d342xc4ASc", "ip": "127.0.0.1"},
+  "masterAddr":  "Master@localhost",
+  "tcp": {
+    "host": "127.0.0.1",
+    "port": 4353,
+    "enable": false
+  },
+  "web": {
+    "host": "127.0.0.1",
+    "port": 8081,
+    "enable": false
+  },
+  "listenBegin": 15151,
+  "listenEnd": 25151
+}
