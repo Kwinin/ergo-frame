@@ -11,10 +11,15 @@ import (
 	"github.com/ergo-services/ergo/lib"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
+	"math/rand"
 	"net/http"
 	"strconv"
+	"wsgate/apps/wsgateapp/node"
+	"wsgate/apps/wsgateapp/state"
 	"wsgate/common"
 	"wsgate/config"
+	"wsgate/helper"
 	"wsgate/log"
 	pbAccount "wsgate/proto/account"
 )
@@ -116,96 +121,9 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-//	func (web *webServer) handleWebSocketConnection(writer http.ResponseWriter, r *http.Request) {
-//		// Upgrade HTTP request to WebSocket connection
-//		conn, err := upgrader.Upgrade(writer, r, nil)
-//		if err != nil {
-//			log.Logger.Error("Error upgrading connection:", err)
-//			return
-//		}
-//		defer conn.Close()
-//
-//		// 读取消息头
-//		var header struct {
-//			Length   uint16
-//			ModuleID uint16
-//			MethodID uint16
-//		}
-//		for {
-//
-//			messageType, p, err := conn.ReadMessage()
-//			fmt.Println(333, messageType, p, len(p))
-//			if err != nil {
-//				log.Logger.Error("Error reading message:", err)
-//				return
-//			}
-//
-//			if messageType != websocket.BinaryMessage {
-//				log.Logger.Error("Unexpected message type")
-//				continue
-//			}
-//
-//			err = binary.Read(bytes.NewReader(p[:6]), binary.LittleEndian, &header)
-//			if err != nil {
-//				log.Logger.Error("Error reading message header:", err)
-//
-//			}
-//			fmt.Println(3434, header.ModuleID, header.MethodID)
-//
-//			// 读取消息体
-//			messageBody := p[6:]
-//
-//			// Print the received message
-//			log.Logger.Infof("Received  module: %d, method %d, messageBody: %s\n", header.ModuleID, header.MethodID, messageBody)
-//
-//			//switch true {
-//			//case msg.Code == 0:
-//			//	// 登录
-//			//	_, err = web.login(msg)
-//			//	if err != nil {
-//			//		log.Logger.Error(err)
-//			//		break
-//			//	}
-//			//	fmt.Printf("23434 %s ,%+v \n", web.process.Name(), web.process.Info())
-//			//
-//			//case msg.Code == 1:
-//			//	// 注销
-//			//	//sta := state.NewStateModel(msg.Account)
-//			//	//store, err := sta.GetAllState(web.DB)
-//			//	//if err != nil {
-//			//	//	log.Logger.Error(err)
-//			//	//}
-//			//	//name := fmt.Sprintf("player_remote_%d", store.PlayerId)
-//			//
-//			//	//module := int32(binary.BigEndian.Uint16(buf[n.Packet : n.Packet+2]))
-//			//	//method := int32(binary.BigEndian.Uint16(buf[n.Packet+2 : n.Packet+4]))
-//			//
-//			//	// todo: rand a gamer node
-//			//	err = web.process.Cast(gen.ProcessID{Name: "", Node: "Gamer@localhost"}, etf.Tuple{1000, 1001, message})
-//			//	if err != nil {
-//			//		log.Logger.Infof("callerr %+v", err)
-//			//		break
-//			//	}
-//			//	//err = sta.ClearState(web.DB)
-//			//case msg.Code > 1:
-//			//	name := fmt.Sprintf("player_remote_%d", msg.Account)
-//			//
-//			//	// todo: rand a gamer node
-//			//	err := web.process.Cast(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, msg)
-//			//	if err != nil {
-//			//		log.Logger.Infof("callerr %+v", err)
-//			//		break
-//			//	}
-//			//default:
-//			//	break
-//			//}
-//
-//		}
-//	}
-
 type Client struct {
 	conn     *websocket.Conn
-	PlayerId uint16 // 用户标识符
+	PlayerId uint32
 }
 
 var clients = make(map[*Client]bool)
@@ -240,7 +158,7 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 
 	var header struct {
 		Length   uint16
-		PlayerId uint16
+		PlayerId uint32
 		ModuleId uint16
 		MethodID uint16
 	}
@@ -256,7 +174,7 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		err = binary.Read(bytes.NewReader(p[:8]), binary.LittleEndian, &header)
+		err = binary.Read(bytes.NewReader(p[:10]), binary.LittleEndian, &header)
 		if err != nil {
 			log.Logger.Error("Error reading message header:", err)
 
@@ -287,24 +205,68 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		//}
 		//
 		//fmt.Printf("methodID %d \n", methodID)
+		messageBody := p[10:]
 		switch true {
 		// 登录特殊处理
 		case header.MethodID == uint16(pbAccount.MSG_ACCOUNT_LOGIN):
 			// 读取消息体
 			log.Logger.Infof("messageBody: %+v", header.PlayerId)
+
+			sta := state.NewStateModel(header.PlayerId)
+			store, err := sta.GetAllState(web.DB)
+			if store.PlayerId != 0 || store.Status == common.RoleStatusOnline {
+				rspMsg := &pbAccount.Msg_1001Rsp{
+					RetCode: 2,
+					Data:    "login failed",
+				}
+				web.SendToClient(int32(pbAccount.MSG_ACCOUNT_MODULE), int32(pbAccount.MSG_ACCOUNT_LOGIN), rspMsg)
+				break
+			}
+
 			_, err = web.login(header.PlayerId)
 			if err != nil {
 				log.Logger.Error(err)
+				rspMsg := &pbAccount.Msg_1001Rsp{
+					RetCode: 2,
+					Data:    err.Error(),
+				}
+				web.SendToClient(int32(pbAccount.MSG_ACCOUNT_MODULE), int32(pbAccount.MSG_ACCOUNT_LOGIN), rspMsg)
 				break
 			}
 			client.PlayerId = header.PlayerId
 			clients[client] = true
+		case header.MethodID == uint16(pbAccount.MSG_ACCOUNT_OFFLINE):
+			sta := state.NewStateModel(header.PlayerId)
+			store, err := sta.GetAllState(web.DB)
+			if store.Status != common.RoleStatusOnline {
+				rspMsg := &pbAccount.Msg_1002Rsp{
+					RetCode: 2,
+					Data:    "no online",
+				}
+				web.SendToClient(int32(pbAccount.MSG_ACCOUNT_MODULE), int32(pbAccount.MSG_ACCOUNT_OFFLINE), rspMsg)
+			}
+			name := fmt.Sprintf("player_remote_%d", header.PlayerId)
+			err = web.process.Cast(gen.ProcessID{Name: name, Node: store.NodeAddr}, etf.Tuple{header.PlayerId, header.ModuleId, header.MethodID, messageBody})
+			if err != nil {
+				log.Logger.Infof("cast err %+v", err)
+				break
+			}
+
+			err = sta.ClearState(web.DB)
+			if err != nil {
+				break
+			}
 
 		default:
-			messageBody := p[8:]
 			name := fmt.Sprintf("player_remote_%d", header.PlayerId)
 			//err := web.process.Send(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, etf.Term(etf.Tuple{etf.Atom("$gen_cast"), etf.Tuple{header.PlayerId, header.MsgID, messageBody}}))
-			err = web.process.Cast(gen.ProcessID{Name: name, Node: "Gamer@localhost"}, etf.Tuple{header.PlayerId, header.ModuleId, header.MethodID, messageBody})
+			sta := state.NewStateModel(header.PlayerId)
+			stateModel, err := sta.GetAllState(web.DB)
+			fmt.Println(3434, stateModel)
+			if err != nil {
+				break
+			}
+			err = web.process.Cast(gen.ProcessID{Name: name, Node: stateModel.NodeAddr}, etf.Tuple{header.PlayerId, header.ModuleId, header.MethodID, messageBody})
 			if err != nil {
 				log.Logger.Infof("callerr %+v", err)
 				break
@@ -328,34 +290,49 @@ func (web *webServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (web *webServer) login(playerId uint16) (string, error) {
-
+func (web *webServer) login(playerId uint32) (string, error) {
 	opts := gen.RemoteSpawnOptions{
 		Name: fmt.Sprintf("player_remote_%d", playerId),
 		//Name: "player_remote",
 	}
-	//sta := state.NewStateModel(msg.Account)
-	//sta.PlayerId = msg.Account
-	//store, err := sta.GetAllState(web.DB)
-	//if err != nil {
-	//	return "", err
-	//}
-	//if store.Pid != "" || store.Status == common.RoleStatusLogin {
-	//	return "disable repeat login", nil
-	//}
 
 	playerStr := strconv.FormatUint(uint64(playerId), 10)
-	// todo : rand a gamer node
-	gotPid, err := web.process.RemoteSpawn("Gamer@localhost", "player_remote", opts, etf.Atom(playerStr))
+	nd := node.NewNodesModel()
+	nodes, err := nd.GetNodesByRole(web.DB, "gamer")
+	if err != nil {
+		return "", err
+	}
+	randomIndex := rand.Intn(len(nodes))
+	randomElement := nodes[randomIndex]
+
+	gotPid, err := web.process.RemoteSpawn(randomElement.Addr, "player_remote", opts, etf.Atom(playerStr))
 	if err != nil {
 		return "", err
 	}
 
 	log.Logger.Infof("OK selfName: %s, selfId %s, returnRemoteId %d,%s,%s", web.process.Name(), web.process.Self(), gotPid.ID, gotPid.Node, gotPid.String())
-
-	//sta.Pid = gotPid.String()
-	//sta.PlayerId = msg.Account
-	//sta.Status = common.RoleStatusLogin
-	//sta.AddState(web.DB)
+	sta := state.NewStateModel(playerId)
+	sta.Pid = gotPid.String()
+	sta.Status = common.RoleStatusOnline
+	sta.NodeAddr = randomElement.Addr
+	err = sta.AddState(web.DB)
+	if err != nil {
+		name := fmt.Sprintf("player_remote_%d", sta.PlayerId)
+		err = web.process.Cast(gen.ProcessID{Name: name, Node: sta.NodeAddr}, etf.Tuple{sta.PlayerId, pbAccount.MSG_ACCOUNT_MODULE, pbAccount.MSG_ACCOUNT_OFFLINE, "wsgate register failed"})
+		return "", err
+	}
 	return "login successful", nil
+}
+
+func (web *webServer) SendToClient(module int32, method int32, pb proto.Message) {
+	//logrus.Debugf("client send msg [%v] [%v] [%v]", module, method, pb)
+	data, err := proto.Marshal(pb)
+	if err != nil {
+		logrus.Errorf("proto encode error[%v] [%v][%v] [%v]", err.Error(), module, method, pb)
+		return
+	}
+
+	moduleBuf := helper.IntToBytes(module, 2)
+	methodBuf := helper.IntToBytes(method, 2)
+	web.sendChan <- helper.BytesCombine(moduleBuf, methodBuf, data)
 }

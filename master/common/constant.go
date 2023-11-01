@@ -22,7 +22,7 @@ const (
 )
 
 const (
-	Online  int = 1
-	OffLine int = 2
-	Disable int = 3
+	NodeStatusOnline  int = 1
+	NodeStatusOffLine int = 2
+	NodeStatusDisable int = 3
 )

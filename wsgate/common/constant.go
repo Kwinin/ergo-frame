@@ -23,5 +23,13 @@ const (
 
 const (
 	RoleStatusLogin   string = "login"   // 登录
+	RoleStatusOnline  string = "online"  // 在线
 	RoleStatusOffline string = "offline" // 下线
+
+)
+
+const (
+	NodeStatusOnline  int = 1
+	NodeStatusOffLine int = 2
+	NodeStatusDisable int = 3
 )

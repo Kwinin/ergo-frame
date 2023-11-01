@@ -46,19 +46,19 @@ var infoCmd = &cobra.Command{
 				}
 				log.Logger.Infof("monitor list: %+v", nodes)
 			case "online":
-				nodes, err := nd.GetNodesByStatus(db, common.Online)
+				nodes, err := nd.GetNodesByStatus(db, common.NodeStatusOnline)
 				if err != nil {
 					log.Logger.Error(err)
 				}
 				log.Logger.Infof("monitor online list: %+v", nodes)
 			case "offline":
-				nodes, err := nd.GetNodesByStatus(db, common.OffLine)
+				nodes, err := nd.GetNodesByStatus(db, common.NodeStatusOffLine)
 				if err != nil {
 					log.Logger.Error(err)
 				}
 				log.Logger.Infof("monitor offline list: %+v", nodes)
 			case "disable":
-				nodes, err := nd.GetNodesByStatus(db, common.Disable)
+				nodes, err := nd.GetNodesByStatus(db, common.NodeStatusDisable)
 				if err != nil {
 					log.Logger.Error(err)
 				}

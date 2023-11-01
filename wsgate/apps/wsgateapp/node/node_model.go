@@ -2,8 +2,8 @@ package node
 
 import (
 	"encoding/json"
-	"master/common"
-	"master/db"
+	"wsgate/common"
+	"wsgate/db"
 )
 
 type NodesModel struct {
@@ -96,6 +96,20 @@ func (nd *NodesModel) GetNodesByStatus(db *db.DBClient, status int) ([]NodesMode
 	n := make([]NodesModel, 0)
 	for _, oldV := range nodes {
 		if oldV.Status == status {
+			n = append(n, oldV)
+		}
+	}
+	return n, nil
+}
+
+func (nd *NodesModel) GetNodesByRole(db *db.DBClient, role string) ([]NodesModel, error) {
+	nodes, err := nd.GetAllNode(db)
+	if err != nil {
+		return nil, err
+	}
+	n := make([]NodesModel, 0)
+	for _, oldV := range nodes {
+		if oldV.Status == common.NodeStatusOnline && oldV.Role == role {
 			n = append(n, oldV)
 		}
 	}

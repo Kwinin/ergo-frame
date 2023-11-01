@@ -7,18 +7,19 @@ import (
 )
 
 type StateModel struct {
+	PlayerId uint32
 	Pid      string
-	PlayerId int32
-	Status   int
+	Status   string
+	NodeAddr string
 }
 
-func newStateModel(playerId int32) *StateModel {
+func newStateModel(playerId uint32) *StateModel {
 	um := new(StateModel)
 	um.PlayerId = playerId
 	return um
 }
 
-func NewStateModel(playerId int32) *StateModel {
+func NewStateModel(playerId uint32) *StateModel {
 	return newStateModel(playerId)
 }
 
@@ -36,9 +37,10 @@ func (state *StateModel) GetAllState(db *db.DBClient) (*StateModel, error) {
 	if err != nil {
 		return nil, err
 	}
-	state.PlayerId = data["PlayerId"].Int32()
-	state.Status = data["Status"].Int()
+	state.PlayerId = data["PlayerId"].UInt32()
+	state.Status = data["Status"].String()
 	state.Pid = data["Pid"].String()
+	state.NodeAddr = data["NodeAddr"].String()
 
 	//var pid string
 	//err = json.Unmarshal([]byte(data["Pid"].String()), &pid)

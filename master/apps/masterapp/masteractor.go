@@ -52,7 +52,7 @@ func (s *MasterActor) HandleInfo(process *gen.ServerProcess, message etf.Term) g
 		log.Logger.Info(111, m.Msg)
 	case gen.MessageDown: // monitor
 		nd := node.NewNodesModel()
-		err := nd.UpdateStatusNode(s.DB, m.ProcessID.Name, m.ProcessID.Node, common.OffLine)
+		err := nd.UpdateStatusNode(s.DB, m.ProcessID.Name, m.ProcessID.Node, common.NodeStatusOffLine)
 		if err != nil {
 			log.Logger.Error(err)
 		}
@@ -120,7 +120,7 @@ func (s *MasterActor) HandleCall(process *gen.ServerProcess, from gen.ServerFrom
 					Role:      msg.FromNode.Role,
 					Name:      msg.FromNode.Name,
 					Addr:      msg.FromNode.Addr,
-					Status:    common.Online,
+					Status:    common.NodeStatusOnline,
 					GenServer: msg.FromGenServer,
 				}
 

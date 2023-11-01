@@ -77,21 +77,24 @@
         };
         // 解析二进制数据
         const msgBuffer = MyMessage.encode(c2sLoginMessage).finish();
+
         // Create the message header
-        const header = new ArrayBuffer(8);
+        const header = new ArrayBuffer(10); // 10字节，用于Uint16
         const headerView = new DataView(header);
-        const messageLength = msgBuffer.byteLength + 8; // Length of the message
-        headerView.setUint16(0, messageLength, true); // Set message length (little-endian)
-        headerView.setUint16(2, accountInput , true); // Set player ID (little-endian)
-        headerView.setUint16(4, 1000 , true); // Set module ID (little-endian)
-        headerView.setUint16(6, 1001, true); // Set method ID (little-endian)
+        const messageLength = msgBuffer.byteLength + 10; // 长度包括消息头
+        headerView.setUint16(0, messageLength, true); // 设置消息长度 (little-endian, Uint16)
+        headerView.setUint32(2, accountInput, true); // 设置玩家ID (little-endian, Uint32)
+        headerView.setUint16(6, 1000, true); // 设置模块ID (little-endian, Uint16)
+        headerView.setUint16(8, 1001, true); // 设置方法ID (little-endian, Uint16)
 
         // Concatenate header and message
         const c2sLoginData = new Uint8Array(messageLength);
-        c2sLoginData.set(new Uint8Array(header), 0);
-        c2sLoginData.set(new Uint8Array(msgBuffer), 8);
+        new Uint8Array(header).forEach((value, index) => {
+          c2sLoginData[index] = value;
+        });
+        c2sLoginData.set(new Uint8Array(msgBuffer), 10); // 消息体从字节位置10开始
 
-        // Send the message to the server
+// Send the message to the server
         socket.send(c2sLoginData);
       });
 
@@ -119,18 +122,18 @@
         // 解析二进制数据
         const msgBuffer = MyMessage.encode(Message).finish();
         // Create the message header
-        const header = new ArrayBuffer(8);
+        const header = new ArrayBuffer(10);
         const headerView = new DataView(header);
-        const messageLength = msgBuffer.byteLength + 8; // Length of the message
-        headerView.setUint16(0, messageLength, true); // Set message length (little-endian)
-        headerView.setUint16(2, accountInput , true); // Set player ID (little-endian)
-        headerView.setUint16(4, 1000 , true); // Set module ID (little-endian)
-        headerView.setUint16(6, 1002, true); // Set method ID (little-endian)
+        const messageLength = msgBuffer.byteLength + 10; // Length of the message
+        headerView.setUint16(0, messageLength, true); // 设置消息长度 (little-endian, Uint16)
+        headerView.setUint32(2, accountInput, true); // 设置玩家ID (little-endian, Uint32)
+        headerView.setUint16(6, 1000, true); // 设置模块ID (little-endian, Uint16)
+        headerView.setUint16(8, 1002, true); // 设置方法ID (little-endian, Uint16)
 
         // Concatenate header and message
         const c2sLoginData = new Uint8Array(messageLength);
         c2sLoginData.set(new Uint8Array(header), 0);
-        c2sLoginData.set(new Uint8Array(msgBuffer), 8);
+        c2sLoginData.set(new Uint8Array(msgBuffer), 10);
 
         // Send the message to the server
         socket.send(c2sLoginData);
@@ -163,18 +166,17 @@
         // 解析二进制数据
         const msgBuffer = MyMessage.encode(attrInfoMsg).finish();
         // Create the message header
-        const header = new ArrayBuffer(8);
+        const header = new ArrayBuffer(10);
         const headerView = new DataView(header);
-        const messageLength = msgBuffer.byteLength + 8; // Length of the message
-        headerView.setUint16(0, messageLength, true); // Set message length (little-endian)
-        headerView.setUint16(2, accountInput , true); // Set player ID (little-endian)
-        headerView.setUint16(4, 2100 , true); // Set module ID (little-endian)
-        headerView.setUint16(6, 2101, true); // Set method ID (little-endian)
-
+        const messageLength = msgBuffer.byteLength + 10; // Length of the message
+        headerView.setUint16(0, messageLength, true); // 设置消息长度 (little-endian, Uint16)
+        headerView.setUint32(2, accountInput, true); // 设置玩家ID (little-endian, Uint32)
+        headerView.setUint16(6, 2100, true); // 设置模块ID (little-endian, Uint16)
+        headerView.setUint16(8, 2101, true); // 设置方法ID (little-endian, Uint16)
         // Concatenate header and message
         const c2sLoginData = new Uint8Array(messageLength);
         c2sLoginData.set(new Uint8Array(header), 0);
-        c2sLoginData.set(new Uint8Array(msgBuffer), 8);
+        c2sLoginData.set(new Uint8Array(msgBuffer), 10);
 
         // Send the message to the server
         socket.send(c2sLoginData);
@@ -202,18 +204,18 @@
         // 解析二进制数据
         const msgBuffer = MyMessage.encode(shopInfoMsg).finish();
         // Create the message header
-        const header = new ArrayBuffer(8);
+        const header = new ArrayBuffer(10);
         const headerView = new DataView(header);
-        const messageLength = msgBuffer.byteLength + 8; // Length of the message
-        headerView.setUint16(0, messageLength, true); // Set message length (little-endian)
-        headerView.setUint16(2, accountInput , true); // Set player ID (little-endian)
-        headerView.setUint16(4, 2200 , true); // Set module ID (little-endian)
-        headerView.setUint16(6, 2201, true); // Set method ID (little-endian)
+        const messageLength = msgBuffer.byteLength + 10; // Length of the message
+        headerView.setUint16(0, messageLength, true); // 设置消息长度 (little-endian, Uint16)
+        headerView.setUint32(2, accountInput, true); // 设置玩家ID (little-endian, Uint32)
+        headerView.setUint16(6, 2200, true); // 设置模块ID (little-endian, Uint16)
+        headerView.setUint16(8, 2201, true); // 设置方法ID (little-endian, Uint16)
 
         // Concatenate header and message
         const reqData = new Uint8Array(messageLength);
         reqData.set(new Uint8Array(header), 0);
-        reqData.set(new Uint8Array(msgBuffer), 8);
+        reqData.set(new Uint8Array(msgBuffer), 10);
 
         // Send the message to the server
         socket.send(reqData);
@@ -246,18 +248,18 @@
         // 解析二进制数据
         const msgBuffer = MyMessage.encode(shopAddMsg).finish();
         // Create the message header
-        const header = new ArrayBuffer(8);
+        const header = new ArrayBuffer(10);
         const headerView = new DataView(header);
-        const messageLength = msgBuffer.byteLength + 8; // Length of the message
-        headerView.setUint16(0, messageLength, true); // Set message length (little-endian)
-        headerView.setUint16(2, accountInput , true); // Set player ID (little-endian)
-        headerView.setUint16(4, 2200 , true); // Set module ID (little-endian)
-        headerView.setUint16(6, 2202, true); // Set method ID (little-endian)
+        const messageLength = msgBuffer.byteLength + 10; // Length of the message
+        headerView.setUint16(0, messageLength, true); // 设置消息长度 (little-endian, Uint16)
+        headerView.setUint32(2, accountInput, true); // 设置玩家ID (little-endian, Uint32)
+        headerView.setUint16(6, 2200, true); // 设置模块ID (little-endian, Uint16)
+        headerView.setUint16(8, 2202, true); // 设置方法ID (little-endian, Uint16)
 
         // Concatenate header and message
         const reqData = new Uint8Array(messageLength);
         reqData.set(new Uint8Array(header), 0);
-        reqData.set(new Uint8Array(msgBuffer), 8);
+        reqData.set(new Uint8Array(msgBuffer), 10);
 
         // Send the message to the server
         socket.send(reqData);

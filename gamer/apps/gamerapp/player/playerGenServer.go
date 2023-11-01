@@ -82,7 +82,7 @@ func (gs *PlayerGenServer) HandleCast(process *gen.ServerProcess, message etf.Te
 	}
 	switch msg.MethodId {
 	case int32(pbAccount.MSG_ACCOUNT_OFFLINE):
-		gs.SendToClient(int32(pbAccount.MSG_ACCOUNT_MODULE), int32(pbAccount.MSG_ACCOUNT_OFFLINE), &pbAccount.Msg_1002Rsp{RetCode: 1, Data: "offline"})
+		gs.SendToClient(int32(pbAccount.MSG_ACCOUNT_MODULE), int32(pbAccount.MSG_ACCOUNT_OFFLINE), &pbAccount.Msg_1002Rsp{RetCode: 1, Data: common.RoleStatusOffline})
 		fmt.Println(3333222, process.Name())
 		gs.process.Exit("player offline")
 	default:
